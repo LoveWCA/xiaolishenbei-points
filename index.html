@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>球队积分兑换</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .container {
+            background: #ffffff;
+            border: 1px solid #000;
+            padding: 20px;
+        }
+        .login-box { margin-bottom: 20px; }
+        .login-box h3 { margin-bottom: 10px; font-weight: 600; color: #000; }
+        .login-box input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #000;
+            background: #fff;
+            color: #000;
+            font-size: 16px;
+        }
+        .login-box button {
+            width: 100%;
+            background: #000;
+            color: #fff;
+            border: 1px solid #000;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .login-box button:hover {
+            background: #fff;
+            color: #000;
+        }
+        .hidden { display: none; }
+        .warning-box {
+            background: #f9f9f9;
+            border: 1px solid #000;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #000;
+            text-align: center;
+            font-weight: 500;
+        }
+        .points-card {
+            background: #fff;
+            border: 1px solid #000;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .points-label { font-size: 14px; opacity: 0.7; color: #000; }
+        .points-value { font-size: 48px; font-weight: bold; margin-top: 10px; color: #000; }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #000;
+        }
+        .prize-item, .record-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .prize-item:last-child, .record-item:last-child { border-bottom: none; }
+        .prize-info, .record-info { display: flex; flex-direction: column; }
+        .prize-name, .record-name { font-size: 16px; font-weight: bold; color: #000; }
+        .prize-cost, .record-cost { font-size: 14px; color: #555; margin-top: 5px; }
+        .prize-stock, .record-time { font-size: 12px; color: #777; margin-top: 3px; }
+        .record-right { text-align: right; }
+        .record-status {
+            display: inline-block;
+            font-size: 12px;
+            color: #fff;
+            margin-top: 5px;
+            background: #000;
+            padding: 2px 8px;
+        }
+        .exchange-btn {
+            background: #000;
+            color: #fff;
+            border: 1px solid #000;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .exchange-btn:hover {
+            background: #fff;
+            color: #000;
+        }
+        .exchange-btn:disabled {
+            background: #ccc;
+            color: #666;
+            border-color: #ccc;
+            cursor: not-allowed;
+        }
+        .empty { text-align: center; color: #888; padding: 20px; font-size: 14px; }
+        .notice-box {
+            margin-top: 20px;
+            background: #f9f9f9;
+            border: 1px solid #000;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .notice-box .notice-item {
+            padding: 5px 0;
+            font-size: 13px;
+            border-bottom: 1px dashed #ccc;
+        }
+        .notice-box .notice-item:last-child { border-bottom: none; }
+        .logout-btn {
+            background: #fff;
+            color: #000;
+            border: 1px solid #000;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .logout-btn:hover {
+            background: #000;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 登录界面 -->
+        <div id="loginSection" class="login-box">
+            <h3>队员登录</h3>
+            <div class="warning-box">
+                各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分
+            </div>
+            <input type="text" id="accountInput" placeholder="账号">
+            <input type="password" id="passwordInput" placeholder="密码">
+            <button onclick="loginUser()">登录</button>
+        </div>
+
+        <!-- 主界面（登录后显示） -->
+        <div id="mainSection" class="hidden">
+            <div style="text-align:right; margin-bottom:10px;">
+                <span id="userName" style="font-weight:bold; margin-right:10px;"></span>
+                <button class="logout-btn" onclick="logoutUser()">退出</button>
+            </div>
+            <div class="warning-box">
+                各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分
+            </div>
+            <div class="points-card">
+                <div class="points-label">我的积分</div>
+                <div class="points-value" id="pointsDisplay">0</div>
+            </div>
+
+            <div class="section-title">可兑换奖品</div>
+            <div id="prizeList"></div>
+
+            <div class="section-title">我的兑换记录</div>
+            <div id="recordList"></div>
+
+            <div class="section-title">管理员通知区（所有兑换请求）</div>
+            <div class="notice-box" id="noticeBox"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== Supabase 配置 ====================
+        const SUPABASE_URL = 'https://hjktfecloctfpaoohzax.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqa3RmZWNsb2N0ZnBhb29oemF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODQ5MzksImV4cCI6MjEwMjQ2MDkzOX0.Kd94mBz7-2EX9Xu3HZUKawIgUWCrVbFsH7rXFyz7WUg';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null; // { id, name, points }
+
+        // 登录函数（调用 RPC 验证密码）
+        async function loginUser() {
+            const account = document.getElementById('accountInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            if (!account || !password) {
+                alert('请输入账号和密码');
+                return;
+            }
+
+            const { data, error } = await supabase.rpc('login_user', {
+                p_account: account,
+                p_password: password
+            });
+
+            if (error) {
+                console.error('登录失败:', error);
+                alert('登录失败，请重试');
+                return;
+            }
+
+            if (data && data.success) {
+                currentUser = {
+                    id: data.user_id,
+                    name: data.name,
+                    points: data.points
+                };
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('mainSection').classList.remove('hidden');
+                document.getElementById('userName').textContent = data.name;
+                loadAll();
+            } else {
+                alert(data?.msg || '账号或密码错误');
+            }
+        }
+
+        function logoutUser() {
+            currentUser = null;
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('mainSection').classList.add('hidden');
+            document.getElementById('accountInput').value = '';
+            document.getElementById('passwordInput').value = '';
+        }
+
+        async function loadPoints() {
+            if (!currentUser) return;
+            const { data, error } = await supabase
+                .from('users')
+                .select('points')
+                .eq('id', currentUser.id)
+                .single();
+            if (!error && data) {
+                currentUser.points = data.points;
+                document.getElementById('pointsDisplay').textContent = data.points;
+            } else {
+                document.getElementById('pointsDisplay').textContent = currentUser.points;
+            }
+        }
+
+        async function loadPrizes() {
+            const { data, error } = await supabase
+                .from('prizes')
+                .select('*')
+                .order('cost', { ascending: true });
+            if (error) { console.error(error); return; }
+            const container = document.getElementById('prizeList');
+            container.innerHTML = data.length === 0
+                ? '<div class="empty">暂无奖品</div>'
+                : data.map(p => `
+                    <div class="prize-item">
+                        <div class="prize-info">
+                            <div class="prize-name">${p.name}</div>
+                            <div class="prize-cost">${p.cost} 积分</div>
+                            <div class="prize-stock">剩余 ${p.stock} 件</div>
+                        </div>
+                        <button class="exchange-btn" onclick="exchangePrize('${p.id}')" ${p.stock <= 0 ? 'disabled' : ''}>
+                            ${p.stock <= 0 ? '已兑完' : '兑换'}
+                        </button>
+                    </div>
+                `).join('');
+        }
+
+        async function loadRecords() {
+            if (!currentUser) return;
+            const { data, error } = await supabase
+                .from('exchanges')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
+            if (error) { console.error(error); return; }
+            const container = document.getElementById('recordList');
+            container.innerHTML = data.length === 0
+                ? '<div class="empty">暂无兑换记录</div>'
+                : data.map(r => `
+                    <div class="record-item">
+                        <div class="record-info">
+                            <div class="record-name">${r.prize_name}</div>
+                            <div class="record-time">${new Date(r.created_at).toLocaleString()}</div>
+                        </div>
+                        <div class="record-right">
+                            <div class="record-cost">-${r.cost} 积分</div>
+                            <span class="record-status">${r.status}</span>
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        async function loadNotices() {
+            const { data, error } = await supabase
+                .from('exchanges')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(20);
+            if (error) { console.error(error); return; }
+            const container = document.getElementById('noticeBox');
+            container.innerHTML = data.length === 0
+                ? '<div class="empty">暂无兑换请求</div>'
+                : data.map(n => `
+                    <div class="notice-item">
+                        【${new Date(n.created_at).toLocaleString()}】${n.prize_name}，消耗${n.cost}积分
+                    </div>
+                `).join('');
+        }
+
+        async function exchangePrize(prizeId) {
+            if (!currentUser) return;
+            if (!confirm('确定使用积分兑换该奖品吗？')) return;
+
+            const { data, error } = await supabase.rpc('exchange_prize', {
+                p_user_id: currentUser.id,
+                p_prize_id: prizeId
+            });
+
+            if (error) {
+                alert('兑换失败：' + error.message);
+                return;
+            }
+
+            if (data && data.success) {
+                alert('兑换成功！');
+
+                // 发送通知到 Server酱
+                try {
+                    await fetch('https://hjktfecloctfpaoohzax.supabase.co/functions/v1/swift-api', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            prizeName: data.prize_name,
+                            cost: data.cost
+                        })
+                    });
+                } catch (e) {
+                    console.error('通知发送失败:', e);
+                }
+
+                loadAll();
+            } else {
+                alert(data.msg || '兑换失败');
+            }
+        }
+
+        function loadAll() {
+            loadPoints();
+            loadPrizes();
+            loadRecords();
+            loadNotices();
+        }
+    </script>
+</body>
+</html>
