@@ -74,39 +74,54 @@
     </div>
 
     <script>
-        // ==================== 配置 ====================
+        //supabase访问
         const SUPABASE_URL = 'https://hjktfecloctfpaoohzax.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqa3RmZWNsb2N0ZnBhb29oemF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODQ5MzksImV4cCI6MjEwMjQ2MDkzOX0.Kd94mBz7-2EX9Xu3HZUKawIgUWCrVbFsH7rXFyz7WUg';
-        const API_URL = `${SUPABASE_URL}/rest/v1`;
 
-        let currentUser = null;
-
-        // 通用请求头
+        // 请求头文件
         const headers = {
             'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
             'Content-Type': 'application/json'
         };
 
-        // 登录
+        let currentUser = null;
+
+        //登陆界面
         async function loginUser() {
             const account = document.getElementById('accountInput').value.trim();
             const password = document.getElementById('passwordInput').value.trim();
-            if (!account || !password) { alert('请输入账号和密码'); return; }
+            if (!account || !password) {
+                alert('请输入账号和密码');
+                return;
+            }
 
             try {
-                const response = await fetch(`${API_URL}/rpc/login_user`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/login_user`, {
                     method: 'POST',
                     headers: headers,
                     body: JSON.stringify({ p_account: account, p_password: password })
                 });
+
                 const data = await response.json();
+
                 if (data && data.success) {
-                    currentUser = { id: data.user_id, name: data.name, points: data.points };
+                    currentUser = {
+                        id: data.user_id,
+                        name: data.name,
+                        points: data.points
+                    };
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('mainSection').classList.remove('hidden');
-                    document.getElementById('greetingText').textContent = `你好，${data.name}`;
-                    loadAll();
+                    document.getElementById('greetingText').textContent = '你好，' + data.name;
+
+                    // 直接显示登录时返回的积分
+                    document.getElementById('pointsDisplay').textContent = data.points;
+
+                    // 加载奖品和记录
+                    loadPrizes();
+                    loadRecords();
+                    loadNotices();
                 } else {
                     alert(data.msg || '账号或密码错误');
                 }
@@ -124,27 +139,17 @@
             document.getElementById('passwordInput').value = '';
         }
 
-        // 加载积分
-        async function loadPoints() {
-            if (!currentUser) return;
-            try {
-                const response = await fetch(`${API_URL}/users?id=eq.${currentUser.id}&select=points`, {
-                    headers: headers
-                });
-                const data = await response.json();
-                if (data && data.length > 0) {
-                    currentUser.points = data[0].points;
-                    document.getElementById('pointsDisplay').textContent = data[0].points;
-                }
-            } catch (e) {
-                console.error('加载积分失败:', e);
+        //加载用户的points值
+        function loadPoints() {
+            if (currentUser) {
+                document.getElementById('pointsDisplay').textContent = currentUser.points;
             }
         }
 
-        // 加载奖品
+        //加载奖品表
         async function loadPrizes() {
             try {
-                const response = await fetch(`${API_URL}/prizes?select=*&order=cost.asc`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/prizes?select=*&order=cost.asc`, {
                     headers: headers
                 });
                 const data = await response.json();
@@ -170,11 +175,11 @@
             }
         }
 
-        // 加载我的兑换记录
+        //生成用户兑换记录
         async function loadRecords() {
             if (!currentUser) return;
             try {
-                const response = await fetch(`${API_URL}/exchanges?user_id=eq.${currentUser.id}&select=*&order=created_at.desc`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/exchanges?user_id=eq.${currentUser.id}&select=*&order=created_at.desc`, {
                     headers: headers
                 });
                 const data = await response.json();
@@ -200,10 +205,10 @@
             }
         }
 
-        // 加载管理员通知区
+        //使用server酱加载管理员通知
         async function loadNotices() {
             try {
-                const response = await fetch(`${API_URL}/exchanges?select=*&order=created_at.desc&limit=20`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/exchanges?select=*&order=created_at.desc&limit=20`, {
                     headers: headers
                 });
                 const data = await response.json();
@@ -222,30 +227,28 @@
             }
         }
 
-        // 兑换
+        //利用前端代码访问兑换函数
         async function exchangePrize(prizeId) {
             if (!currentUser) return;
             if (!confirm('确定使用积分兑换该奖品吗？')) return;
+
             try {
-                const response = await fetch(`${API_URL}/rpc/exchange_prize`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/exchange_prize`, {
                     method: 'POST',
                     headers: headers,
                     body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId })
                 });
                 const data = await response.json();
+
                 if (data && data.success) {
                     alert('兑换成功！');
-                    // 可选：发送通知到 Edge Function
-                    /*
-                    try {
-                        await fetch('https://hjktfecloctfpaoohzax.supabase.co/functions/v1/swift-api', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ prizeName: data.prize_name, cost: data.cost })
-                        });
-                    } catch (e) { console.error('通知发送失败', e); }
-                    */
-                    loadAll();
+                    // 更新本地积分
+                    currentUser.points -= data.cost;
+                    document.getElementById('pointsDisplay').textContent = currentUser.points;
+                    // 重新加载奖品和记录
+                    loadPrizes();
+                    loadRecords();
+                    loadNotices();
                 } else {
                     alert(data.msg || '兑换失败');
                 }
@@ -253,13 +256,6 @@
                 console.error('兑换请求失败:', e);
                 alert('网络错误，请重试');
             }
-        }
-
-        function loadAll() {
-            loadPoints();
-            loadPrizes();
-            loadRecords();
-            loadNotices();
         }
     </script>
 </body>
