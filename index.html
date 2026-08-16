@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>球队积分兑换</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background: #f5f5f5; padding: 20px; max-width: 600px; margin: 0 auto; }
         .container { background: #fff; border: 1px solid #000; padding: 20px; }
         .login-box { margin-bottom: 20px; }
@@ -74,11 +74,11 @@
     </div>
 
     <script>
-        //supabase访问
+        // ========== 配置（请确保这些值正确）==========
         const SUPABASE_URL = 'https://hjktfecloctfpaoohzax.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqa3RmZWNsb2N0ZnBhb29oemF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODQ5MzksImV4cCI6MjEwMjQ2MDkzOX0.Kd94mBz7-2EX9Xu3HZUKawIgUWCrVbFsH7rXFyz7WUg';
-
-        // 请求头文件
+        
+        // 请求头（包含 API 密钥和 Bearer Token）
         const headers = {
             'apikey': SUPABASE_ANON_KEY,
             'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
@@ -87,7 +87,7 @@
 
         let currentUser = null;
 
-        //登陆界面
+        // 登录函数
         async function loginUser() {
             const account = document.getElementById('accountInput').value.trim();
             const password = document.getElementById('passwordInput').value.trim();
@@ -111,14 +111,14 @@
                         name: data.name,
                         points: data.points
                     };
+
+                    // 更新界面
                     document.getElementById('loginSection').classList.add('hidden');
                     document.getElementById('mainSection').classList.remove('hidden');
                     document.getElementById('greetingText').textContent = '你好，' + data.name;
-
-                    // 直接显示登录时返回的积分
                     document.getElementById('pointsDisplay').textContent = data.points;
 
-                    // 加载奖品和记录
+                    // 加载其他数据
                     loadPrizes();
                     loadRecords();
                     loadNotices();
@@ -126,7 +126,7 @@
                     alert(data.msg || '账号或密码错误');
                 }
             } catch (e) {
-                console.error('登录请求失败:', e);
+                console.error('登录失败:', e);
                 alert('网络错误，请重试');
             }
         }
@@ -139,25 +139,32 @@
             document.getElementById('passwordInput').value = '';
         }
 
-        //加载用户的points值
-        function loadPoints() {
-            if (currentUser) {
-                document.getElementById('pointsDisplay').textContent = currentUser.points;
-            }
-        }
-
-        //加载奖品表
+        // 加载奖品列表
         async function loadPrizes() {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/prizes?select=*&order=cost.asc`, {
                     headers: headers
                 });
+
+                if (!response.ok) {
+                    console.error('奖品请求失败:', response.status);
+                    return;
+                }
+
                 const data = await response.json();
                 const container = document.getElementById('prizeList');
+
+                // 确保 data 是数组
+                if (!Array.isArray(data)) {
+                    container.innerHTML = '<div class="empty">加载奖品失败</div>';
+                    return;
+                }
+
                 if (data.length === 0) {
                     container.innerHTML = '<div class="empty">暂无奖品</div>';
                     return;
                 }
+
                 container.innerHTML = data.map(p => `
                     <div class="prize-item">
                         <div class="prize-info">
@@ -171,23 +178,37 @@
                     </div>
                 `).join('');
             } catch (e) {
-                console.error('加载奖品失败:', e);
+                console.error('加载奖品异常:', e);
+                document.getElementById('prizeList').innerHTML = '<div class="empty">加载失败</div>';
             }
         }
 
-        //生成用户兑换记录
+        // 加载我的兑换记录
         async function loadRecords() {
             if (!currentUser) return;
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/exchanges?user_id=eq.${currentUser.id}&select=*&order=created_at.desc`, {
                     headers: headers
                 });
+
+                if (!response.ok) {
+                    console.error('记录请求失败:', response.status);
+                    return;
+                }
+
                 const data = await response.json();
                 const container = document.getElementById('recordList');
+
+                if (!Array.isArray(data)) {
+                    container.innerHTML = '<div class="empty">加载记录失败</div>';
+                    return;
+                }
+
                 if (data.length === 0) {
                     container.innerHTML = '<div class="empty">暂无兑换记录</div>';
                     return;
                 }
+
                 container.innerHTML = data.map(r => `
                     <div class="record-item">
                         <div class="record-info">
@@ -201,33 +222,48 @@
                     </div>
                 `).join('');
             } catch (e) {
-                console.error('加载记录失败:', e);
+                console.error('加载记录异常:', e);
+                document.getElementById('recordList').innerHTML = '<div class="empty">加载失败</div>';
             }
         }
 
-        //使用server酱加载管理员通知
+        // 加载管理员通知区（最近20条兑换请求）
         async function loadNotices() {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/exchanges?select=*&order=created_at.desc&limit=20`, {
                     headers: headers
                 });
+
+                if (!response.ok) {
+                    console.error('通知请求失败:', response.status);
+                    return;
+                }
+
                 const data = await response.json();
                 const container = document.getElementById('noticeBox');
+
+                if (!Array.isArray(data)) {
+                    container.innerHTML = '<div class="empty">加载通知失败</div>';
+                    return;
+                }
+
                 if (data.length === 0) {
                     container.innerHTML = '<div class="empty">暂无兑换请求</div>';
                     return;
                 }
+
                 container.innerHTML = data.map(n => `
                     <div class="notice-item">
                         【${new Date(n.created_at).toLocaleString()}】${n.prize_name}，消耗${n.cost}积分
                     </div>
                 `).join('');
             } catch (e) {
-                console.error('加载通知失败:', e);
+                console.error('加载通知异常:', e);
+                document.getElementById('noticeBox').innerHTML = '<div class="empty">加载失败</div>';
             }
         }
 
-        //利用前端代码访问兑换函数
+        // 兑换奖品
         async function exchangePrize(prizeId) {
             if (!currentUser) return;
             if (!confirm('确定使用积分兑换该奖品吗？')) return;
@@ -238,14 +274,15 @@
                     headers: headers,
                     body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId })
                 });
+
                 const data = await response.json();
 
                 if (data && data.success) {
                     alert('兑换成功！');
-                    // 更新本地积分
+                    // 更新本地积分（扣减）
                     currentUser.points -= data.cost;
                     document.getElementById('pointsDisplay').textContent = currentUser.points;
-                    // 重新加载奖品和记录
+                    // 重新加载奖品、记录、通知
                     loadPrizes();
                     loadRecords();
                     loadNotices();
@@ -253,7 +290,7 @@
                     alert(data.msg || '兑换失败');
                 }
             } catch (e) {
-                console.error('兑换请求失败:', e);
+                console.error('兑换请求异常:', e);
                 alert('网络错误，请重试');
             }
         }
