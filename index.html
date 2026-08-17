@@ -66,7 +66,6 @@
         .stat-item { text-align: center; }
         .stat-number { font-size: 28px; font-weight: bold; }
         .stat-label { font-size: 14px; color: #555; }
-        /* 战绩颜色样式 */
         .champion-label.gold { color: gold; }
         .champion-number.red { color: red; }
         .runner-label.silver { color: silver; }
@@ -75,14 +74,13 @@
         .award-gold .stat-label, .award-gold .stat-number { color: gold; }
         .remark { margin-top: 20px; font-size: 14px; }
         .pdf-container { width: 100%; height: 500px; border: 1px solid #000; margin-top: 10px; }
-        .prize-link { text-align: center; margin-top: 10px; }
+        .prize-link { text-align: left; margin-top: 10px; margin-bottom: 10px; }
         .prize-link a { color: #000; text-decoration: none; cursor: pointer; }
         .prize-link a:hover { font-weight: bold; }
         .pdf-menu { display: flex; gap: 10px; margin-bottom: 20px; }
         .pdf-menu button { flex: 1; background: #fff; color: #000; border: 1px solid #000; padding: 10px; font-size: 14px; cursor: pointer; text-align: center; }
         .pdf-menu button:hover { background: #000; color: #fff; }
         .faq-btn { background: #000; color: #fff; border: 1px solid #000; border-radius: 50%; width: 25px; height: 25px; line-height: 23px; text-align: center; cursor: pointer; display: inline-block; margin-left: 5px; }
-        /* 模态框 */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .modal { background: #fff; border: 1px solid #000; padding: 20px; width: 90%; max-width: 400px; }
         .modal h4 { margin-bottom: 15px; }
@@ -112,7 +110,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- 登录界面 -->
         <div id="loginSection" class="login-box">
             <h3>队员登录</h3>
             <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分</div>
@@ -121,7 +118,6 @@
             <button onclick="loginUser()">登录</button>
         </div>
 
-        <!-- 主界面 -->
         <div id="mainSection" class="hidden">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <span class="greeting" id="greetingText">你好，</span>
@@ -135,7 +131,6 @@
                 <button class="nav-btn" data-page="cupInfo">本赛季杯赛情况</button>
             </div>
 
-            <!-- 首页 -->
             <div id="page-home" class="page">
                 <div class="pdf-menu">
                     <button onclick="switchPage('cupRules')">查看本赛季杯赛规则</button>
@@ -148,8 +143,7 @@
                 </div>
 
                 <div class="section-title">可兑换奖品</div>
-                <!-- 链接移至奖品列表上方，去掉下划线，加箭头 -->
-                <div class="prize-link" style="text-align: left; margin-bottom: 10px;">
+                <div class="prize-link">
                     <a href="#" onclick="switchPage('eventRules'); return false;">查看积分兑换规则 →</a>
                 </div>
                 <div id="prizeList"><div class="loading">加载中...</div></div>
@@ -160,7 +154,6 @@
                 <div class="notice-box" id="noticeBox"><div class="loading">加载中...</div></div>
             </div>
 
-            <!-- 账号管理 -->
             <div id="page-account" class="page hidden">
                 <div class="section-title">账号管理</div>
                 <div class="account-box">
@@ -170,7 +163,6 @@
                     <button onclick="changeAccountAndName()">确认修改</button>
                 </div>
 
-                <!-- 账号安全子菜单 -->
                 <div class="section-title">账号安全</div>
                 <div class="account-box">
                     <button onclick="openPasswordModal()">修改密码</button>
@@ -178,7 +170,6 @@
                 </div>
             </div>
 
-            <!-- 本赛季杯赛情况 -->
             <div id="page-cupInfo" class="page hidden">
                 <div class="section-title">本赛季杯赛情况</div>
                 <div class="cup-info" id="cupInfoContainer"><div class="loading">加载中...</div></div>
@@ -188,14 +179,12 @@
                 </div>
             </div>
 
-            <!-- 本赛季杯赛规则 -->
             <div id="page-cupRules" class="page hidden">
                 <div class="section-title">本赛季杯赛规则</div>
                 <p style="margin-bottom: 10px;">查看杯赛规则 PDF：</p>
                 <iframe class="pdf-container" src="cup_rules.pdf" title="本赛季杯赛规则"></iframe>
             </div>
 
-            <!-- 本赛季积分兑换活动规则 -->
             <div id="page-eventRules" class="page hidden">
                 <div class="section-title">本赛季积分兑换活动规则</div>
                 <p style="margin-bottom: 10px;">查看积分兑换规则 PDF：</p>
@@ -208,6 +197,7 @@
     <div id="passwordModal" class="modal-overlay hidden">
         <div class="modal">
             <h4>修改密码</h4>
+            <input type="password" id="oldPasswordInput" placeholder="原密码">
             <input type="password" id="newPasswordInput" placeholder="新密码">
             <input type="password" id="confirmPasswordInput" placeholder="确认新密码">
             <div>
@@ -260,7 +250,6 @@
         var selectedQty = {};
         var autoLogoutTimer;
 
-        // 自动登出计时器（3分钟无操作）
         function resetAutoLogout() {
             clearTimeout(autoLogoutTimer);
             autoLogoutTimer = setTimeout(function() {
@@ -270,7 +259,6 @@
             }, 180000);
         }
 
-        // 监听用户操作
         document.addEventListener('click', resetAutoLogout);
         document.addEventListener('keydown', resetAutoLogout);
         document.addEventListener('mousemove', resetAutoLogout);
@@ -311,7 +299,7 @@
                 });
 
                 if (data && data.success) {
-                    currentUser = { id: data.user_id, name: data.name, points: data.points };
+                    currentUser = { id: data.user_id, name: data.name, points: data.points, account: account };
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
                     showMainSection();
                 } else {
@@ -342,12 +330,8 @@
             document.getElementById('accountInput').value = '';
             document.getElementById('passwordInput').value = '';
             switchPage('home');
-            if (showAlert !== false) {
-                // 普通退出不提示，自动登出也不提示
-            }
         }
 
-        // 更新积分显示并添加金色闪烁
         function updatePointsDisplay() {
             var pointsElement = document.getElementById('pointsDisplay');
             if (currentUser && currentUser.points >= 50) {
@@ -357,7 +341,6 @@
             }
         }
 
-        // 修改账号和用户名
         async function changeAccountAndName() {
             var newAccount = document.getElementById('newAccountInput').value.trim();
             var newName = document.getElementById('newNameInput').value.trim();
@@ -412,42 +395,27 @@
             alert('账号信息修改成功');
         }
 
-        // 打开修改密码模态框
         function openPasswordModal() {
+            document.getElementById('oldPasswordInput').value = '';
             document.getElementById('newPasswordInput').value = '';
             document.getElementById('confirmPasswordInput').value = '';
             document.getElementById('passwordModal').classList.remove('hidden');
         }
 
-        // 关闭模态框
         function closeModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
         }
 
-        // 提交密码修改
         async function submitPasswordChange() {
+            var oldPassword = document.getElementById('oldPasswordInput').value.trim();
             var newPassword = document.getElementById('newPasswordInput').value.trim();
             var confirmPassword = document.getElementById('confirmPasswordInput').value.trim();
-            if (!newPassword || !confirmPassword) {
+            if (!oldPassword || !newPassword || !confirmPassword) {
                 alert('请填写所有密码字段');
                 return;
             }
             if (newPassword !== confirmPassword) {
                 alert('两次输入的新密码不一致');
-                return;
-            }
-
-            // 这里需要原密码验证，但用户未提及，我们省略原密码，直接修改
-            // 实际应该要求原密码，但为了符合之前流程，我们创建函数时未包含原密码
-            // 所以这里我们需要一个不需要原密码的修改密码函数，但之前函数要求原密码
-            // 为了简单，我们直接调用数据库函数，但需要原密码。所以修改密码需要原密码输入。
-            // 但用户说“点击后进入新的窗口并在此进行新密码键入、重复键入密码的事件”，未提及原密码。
-            // 所以我们修改函数：让前端收集原密码并在模态框中添加原密码输入框。
-            // 由于代码中已有原密码函数，我们补一个原密码输入框。
-            // 快速修改：在模态框添加原密码输入框。
-            var oldPassword = document.getElementById('oldPasswordInput').value.trim();
-            if (!oldPassword) {
-                alert('请输入原密码');
                 return;
             }
 
@@ -473,14 +441,12 @@
             }
         }
 
-        // 打开注销账号模态框
         function openDeleteAccountModal() {
             document.getElementById('deletePasswordInput').value = '';
             document.getElementById('deleteWarning').classList.remove('show');
             document.getElementById('deleteAccountModal').classList.remove('hidden');
         }
 
-        // 监听注销密码输入显示警告
         document.getElementById('deletePasswordInput').addEventListener('input', function() {
             if (this.value.trim().length > 0) {
                 document.getElementById('deleteWarning').classList.add('show');
@@ -489,7 +455,6 @@
             }
         });
 
-        // 提交注销账号
         async function submitDeleteAccount() {
             var password = document.getElementById('deletePasswordInput').value.trim();
             if (!password) {
@@ -497,29 +462,24 @@
                 return;
             }
 
-            // 验证密码（通过登录函数验证）
             try {
-                var loginData = await apiFetch('/rest/v1/rpc/login_user', {
+                var data = await apiFetch('/rest/v1/rpc/delete_user', {
                     method: 'POST',
-                    body: JSON.stringify({ p_account: currentUser.account, p_password: password })
+                    body: JSON.stringify({ p_user_id: currentUser.id, p_password: password })
                 });
-                if (loginData && loginData.success) {
-                    // 删除用户记录（需要有删除权限，我们简单调用删除）
-                    // 由于没有删除函数，我们直接通过REST删除用户？
-                    // 这里需要谨慎，我们可以创建一个注销函数。
-                    // 快速方案：调用一个RPC函数注销账号，但未提供。我们先跳过实际删除，仅提示。
-                    alert('账号注销功能需要管理员协助，请联系管理员。');
+                if (data && data.success) {
+                    alert('账号已注销');
                     closeModal('deleteAccountModal');
+                    logoutUser(false);
                 } else {
-                    alert(loginData.msg || '密码错误');
+                    alert(data.msg || '密码错误');
                 }
             } catch (e) {
-                console.error('验证密码失败:', e);
-                alert('验证失败，请重试');
+                console.error('注销失败:', e);
+                alert('注销失败，请重试');
             }
         }
 
-        // 加载用户兑换情况
         async function loadUserUsage() {
             if (!currentUser) return;
             try {
@@ -646,7 +606,6 @@
             }
         }
 
-        // 删除兑换记录（不确认）
         async function deleteExchange(exchangeId) {
             if (!currentUser) return;
             try {
@@ -655,7 +614,7 @@
                 });
                 loadRecords();
                 loadNotices();
-                loadPrizes(); // 刷新限购状态
+                loadPrizes();
             } catch (e) {
                 console.error('删除记录失败:', e);
                 alert('删除失败，请重试');
@@ -690,26 +649,11 @@
                     var html = '<div class="player-stats">';
                     data.forEach(function(stat) {
                         var name = stat.name || '未知';
-                        // 冠军样式
-                        var championLabelClass = '';
-                        var championNumberClass = '';
-                        if (stat.champion >= 3) {
-                            championLabelClass = 'champion-label gold';
-                            championNumberClass = 'champion-number red';
-                        }
-                        // 亚军样式
-                        var runnerLabelClass = '';
-                        var runnerNumberClass = '';
-                        if (stat.runner_up > 0) { // 只要>0就按规格显示？用户说“亚军改为银色、黄色”，可能不需要阈值
-                            runnerLabelClass = 'runner-label silver';
-                            runnerNumberClass = 'runner-number yellow';
-                        }
-                        // 季军样式
-                        var thirdLabelClass = '';
-                        if (stat.third_place > 0) {
-                            thirdLabelClass = 'third-label copper';
-                        }
-                        // 金球奖、金靴奖、最佳进球：超过2次全部金色
+                        var championLabelClass = stat.champion >= 3 ? 'champion-label gold' : '';
+                        var championNumberClass = stat.champion >= 3 ? 'champion-number red' : '';
+                        var runnerLabelClass = stat.runner_up > 0 ? 'runner-label silver' : '';
+                        var runnerNumberClass = stat.runner_up > 0 ? 'runner-number yellow' : '';
+                        var thirdLabelClass = stat.third_place > 0 ? 'third-label copper' : '';
                         var goldenBallClass = stat.golden_ball > 2 ? 'award-gold' : '';
                         var goldenBootClass = stat.golden_boot > 2 ? 'award-gold' : '';
                         var bestGoalClass = stat.best_goal > 2 ? 'award-gold' : '';
@@ -747,7 +691,6 @@
             loadNotices();
         }
 
-        // 自动登录
         (function autoLogin() {
             var saved = localStorage.getItem('currentUser');
             if (saved) {
