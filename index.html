@@ -96,7 +96,7 @@
             </div>
             <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分</div>
 
-            <!-- 导航栏（移除PDF菜单） -->
+            <!-- 导航栏 -->
             <div class="nav-bar">
                 <button class="nav-btn active" data-page="home">首页</button>
                 <button class="nav-btn" data-page="account">账号管理</button>
@@ -105,7 +105,7 @@
 
             <!-- 首页 -->
             <div id="page-home" class="page">
-                <!-- PDF菜单（置于奖品栏目上方） -->
+                <!-- PDF菜单 -->
                 <div class="pdf-menu">
                     <button onclick="switchPage('cupRules')">查看本赛季杯赛规则</button>
                     <button onclick="switchPage('eventRules')">查看积分兑换规则</button>
@@ -131,7 +131,11 @@
             <div id="page-account" class="page hidden">
                 <div class="section-title">账号管理</div>
                 <div class="account-box">
-                    <p><strong>修改用户名</strong></p>
+                    <p><strong>修改账号（登录名）</strong></p>
+                    <input type="text" id="newAccountInput" placeholder="输入新账号">
+                    <button onclick="changeAccount()">确认修改</button>
+                    <div class="divider"></div>
+                    <p><strong>修改用户名（显示名称）</strong></p>
                     <input type="text" id="newNameInput" placeholder="输入新用户名">
                     <button onclick="changeName()">确认修改</button>
                     <div class="divider"></div>
@@ -327,6 +331,35 @@
                 }
             } catch (e) {
                 console.error('修改用户名失败:', e);
+                alert('修改失败，请重试');
+            }
+        }
+
+        async function changeAccount() {
+            var newAccount = document.getElementById('newAccountInput').value.trim();
+            if (!newAccount) {
+                alert('请输入新账号');
+                return;
+            }
+
+            try {
+                var data = await apiFetch('/rest/v1/rpc/update_account', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        p_user_id: currentUser.id,
+                        p_new_account: newAccount
+                    })
+                });
+                if (data && data.success) {
+                    currentUser.account = data.new_account || newAccount;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    document.getElementById('newAccountInput').value = '';
+                    alert('账号修改成功，下次登录请使用新账号');
+                } else {
+                    alert(data.msg || '修改失败');
+                }
+            } catch (e) {
+                console.error('修改账号失败:', e);
                 alert('修改失败，请重试');
             }
         }
