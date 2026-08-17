@@ -344,13 +344,17 @@
             document.getElementById('greetingText').textContent = '你好，' + currentUser.name;
             document.getElementById('pointsDisplay').textContent = currentUser.points;
             updatePointsDisplay();
-            if (currentUser.account === '1') {
+            if (isAdmin()) {
                 document.getElementById('adminNoticeSection').style.display = 'block';
             } else {
                 document.getElementById('adminNoticeSection').style.display = 'none';
             }
             loadAll();
             resetAutoLogout();
+        }
+
+        function isAdmin() {
+            return currentUser && (currentUser.account === '1' || currentUser.account === 'shengsiyuan');
         }
 
         function logoutUser(showAlert) {
@@ -634,7 +638,7 @@
                     document.getElementById('qty-' + prizeId).textContent = '0';
                     loadPrizes();
                     loadRecords();
-                    if (currentUser.account === '1') loadNotices();
+                    if (isAdmin()) loadNotices();
                 } else {
                     alert(data.msg || '兑换失败');
                 }
@@ -679,7 +683,7 @@
                     method: 'DELETE'
                 });
                 loadRecords();
-                if (currentUser.account === '1') loadNotices();
+                if (isAdmin()) loadNotices();
                 loadPrizes();
             } catch (e) {
                 console.error('删除记录失败:', e);
@@ -710,9 +714,9 @@
         async function loadCupInfo() {
             var container = document.getElementById('cupInfoContainer');
             container.innerHTML = '<div class="loading">加载中...</div>';
-            var isAdmin = currentUser && currentUser.account === '1';
+            var isAdminUser = isAdmin();
             var adminNotice = document.getElementById('adminNotice');
-            if (isAdmin) {
+            if (isAdminUser) {
                 adminNotice.style.display = 'block';
             } else {
                 adminNotice.style.display = 'none';
@@ -720,14 +724,14 @@
 
             try {
                 var queryPath = '/rest/v1/player_stats?select=*';
-                if (!isAdmin) {
+                if (!isAdminUser) {
                     queryPath += '&user_id=eq.' + currentUser.id;
                 }
                 queryPath += '&order=created_at.asc';
 
                 var statsData = await apiFetch(queryPath);
                 if (!Array.isArray(statsData) || statsData.length === 0) {
-                    if (!isAdmin) {
+                    if (!isAdminUser) {
                         container.innerHTML = '<div class="empty">你还没有战绩记录</div>';
                     } else {
                         container.innerHTML = '<div class="empty">暂无数据</div>';
@@ -781,7 +785,7 @@
         function loadAll() {
             loadPrizes();
             loadRecords();
-            if (currentUser && currentUser.account === '1') {
+            if (isAdmin()) {
                 loadNotices();
             }
         }
