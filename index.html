@@ -59,9 +59,6 @@
         .faq-btn { background: #000; color: #fff; border: 1px solid #000; border-radius: 50%; width: 25px; height: 25px; line-height: 23px; text-align: center; cursor: pointer; display: inline-block; margin-left: 5px; }
         .prize-link { text-align: center; margin-top: 10px; }
         .prize-link a { color: #000; text-decoration: underline; cursor: pointer; }
-        .password-wrapper { position: relative; margin-bottom: 10px; }
-        .password-wrapper input { width: 100%; padding: 10px 40px 10px 10px; margin-bottom: 0; border: 1px solid #000; background: #fff; color: #000; font-size: 16px; }
-        .password-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 18px; color: #000; }
         @media (max-width: 600px) {
             body { padding: 10px; }
             .container { padding: 15px; }
@@ -79,17 +76,16 @@
 </head>
 <body>
     <div class="container">
+        <!-- 登录界面 -->
         <div id="loginSection" class="login-box">
             <h3>队员登录</h3>
             <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分</div>
             <input type="text" id="accountInput" placeholder="账号">
-            <div class="password-wrapper">
-                <input type="password" id="passwordInput" placeholder="密码">
-                <button class="password-toggle" onclick="togglePasswordVisibility('passwordInput', this)">👁</button>
-            </div>
+            <input type="password" id="passwordInput" placeholder="密码">
             <button onclick="loginUser()">登录</button>
         </div>
 
+        <!-- 主界面（登录后显示） -->
         <div id="mainSection" class="hidden">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <span class="greeting" id="greetingText">你好，</span>
@@ -97,6 +93,7 @@
             </div>
             <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分</div>
 
+            <!-- 导航栏 -->
             <div class="nav-bar">
                 <button class="nav-btn active" data-page="home">首页</button>
                 <button class="nav-btn" data-page="account">账号管理</button>
@@ -105,6 +102,7 @@
                 <button class="nav-btn" data-page="eventRules">本赛季积分兑换活动规则</button>
             </div>
 
+            <!-- 首页 -->
             <div id="page-home" class="page">
                 <div class="points-card">
                     <div class="points-label">我的积分</div>
@@ -121,6 +119,7 @@
                 <div class="notice-box" id="noticeBox"><div class="loading">加载中...</div></div>
             </div>
 
+            <!-- 账号管理 -->
             <div id="page-account" class="page hidden">
                 <div class="section-title">账号管理</div>
                 <div class="account-box">
@@ -129,22 +128,14 @@
                     <button onclick="changeName()">确认修改</button>
                     <div class="divider"></div>
                     <p><strong>修改密码</strong></p>
-                    <div class="password-wrapper">
-                        <input type="password" id="oldPasswordInput" placeholder="输入原密码">
-                        <button class="password-toggle" onclick="togglePasswordVisibility('oldPasswordInput', this)">👁</button>
-                    </div>
-                    <div class="password-wrapper">
-                        <input type="password" id="newPasswordInput" placeholder="输入新密码">
-                        <button class="password-toggle" onclick="togglePasswordVisibility('newPasswordInput', this)">👁</button>
-                    </div>
-                    <div class="password-wrapper">
-                        <input type="password" id="confirmPasswordInput" placeholder="确认新密码">
-                        <button class="password-toggle" onclick="togglePasswordVisibility('confirmPasswordInput', this)">👁</button>
-                    </div>
+                    <input type="password" id="oldPasswordInput" placeholder="输入原密码">
+                    <input type="password" id="newPasswordInput" placeholder="输入新密码">
+                    <input type="password" id="confirmPasswordInput" placeholder="确认新密码">
                     <button onclick="changePassword()">确认修改</button>
                 </div>
             </div>
 
+            <!-- 本赛季杯赛情况 -->
             <div id="page-cupInfo" class="page hidden">
                 <div class="section-title">本赛季杯赛情况</div>
                 <div class="cup-info" id="cupInfoContainer"><div class="loading">加载中...</div></div>
@@ -155,12 +146,14 @@
                 <div class="remark" style="margin-top:5px;">申请请在商品兑换页查看。</div>
             </div>
 
+            <!-- 本赛季杯赛规则 -->
             <div id="page-cupRules" class="page hidden">
                 <div class="section-title">本赛季杯赛规则</div>
                 <p style="margin-bottom: 10px;">查看杯赛规则 PDF：</p>
                 <iframe class="pdf-container" src="https://example.com/cup_rules.pdf" title="本赛季杯赛规则"></iframe>
             </div>
 
+            <!-- 本赛季积分兑换活动规则 -->
             <div id="page-eventRules" class="page hidden">
                 <div class="section-title">本赛季积分兑换活动规则</div>
                 <p style="margin-bottom: 10px;">查看积分兑换规则 PDF：</p>
@@ -196,17 +189,6 @@
         var currentUser = null;
         var userUsage = {};
         var selectedQty = {};
-
-        function togglePasswordVisibility(inputId, btn) {
-            var input = document.getElementById(inputId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                btn.textContent = '🙈';
-            } else {
-                input.type = 'password';
-                btn.textContent = '👁';
-            }
-        }
 
         function switchPage(page) {
             document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
