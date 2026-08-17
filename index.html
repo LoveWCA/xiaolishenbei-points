@@ -59,9 +59,8 @@
         .faq-btn { background: #000; color: #fff; border: 1px solid #000; border-radius: 50%; width: 25px; height: 25px; line-height: 23px; text-align: center; cursor: pointer; display: inline-block; margin-left: 5px; }
         .prize-link { text-align: center; margin-top: 10px; }
         .prize-link a { color: #000; text-decoration: underline; cursor: pointer; }
-        /* 密码输入框容器 */
         .password-wrapper { position: relative; margin-bottom: 10px; }
-        .password-wrapper input { margin-bottom: 0; }
+        .password-wrapper input { width: 100%; padding: 10px 40px 10px 10px; margin-bottom: 0; border: 1px solid #000; background: #fff; color: #000; font-size: 16px; }
         .password-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 18px; color: #000; }
         @media (max-width: 600px) {
             body { padding: 10px; }
@@ -80,12 +79,10 @@
 </head>
 <body>
     <div class="container">
-        <!-- 登录界面 -->
         <div id="loginSection" class="login-box">
             <h3>队员登录</h3>
             <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分</div>
             <input type="text" id="accountInput" placeholder="账号">
-            <!-- 密码输入框带眼睛 -->
             <div class="password-wrapper">
                 <input type="password" id="passwordInput" placeholder="密码">
                 <button class="password-toggle" onclick="togglePasswordVisibility('passwordInput', this)">👁</button>
@@ -93,16 +90,13 @@
             <button onclick="loginUser()">登录</button>
         </div>
 
-        <!-- 主界面（登录后显示） -->
         <div id="mainSection" class="hidden">
-            <!-- 顶部：问候语和退出按钮 -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <span class="greeting" id="greetingText">你好，</span>
                 <button class="logout-btn" onclick="logoutUser()">退出</button>
             </div>
             <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分</div>
 
-            <!-- 导航栏 -->
             <div class="nav-bar">
                 <button class="nav-btn active" data-page="home">首页</button>
                 <button class="nav-btn" data-page="account">账号管理</button>
@@ -111,8 +105,6 @@
                 <button class="nav-btn" data-page="eventRules">本赛季积分兑换活动规则</button>
             </div>
 
-            <!-- 内容区域 -->
-            <!-- 首页 -->
             <div id="page-home" class="page">
                 <div class="points-card">
                     <div class="points-label">我的积分</div>
@@ -129,7 +121,6 @@
                 <div class="notice-box" id="noticeBox"><div class="loading">加载中...</div></div>
             </div>
 
-            <!-- 账号管理 -->
             <div id="page-account" class="page hidden">
                 <div class="section-title">账号管理</div>
                 <div class="account-box">
@@ -154,7 +145,6 @@
                 </div>
             </div>
 
-            <!-- 本赛季杯赛情况 -->
             <div id="page-cupInfo" class="page hidden">
                 <div class="section-title">本赛季杯赛情况</div>
                 <div class="cup-info" id="cupInfoContainer"><div class="loading">加载中...</div></div>
@@ -165,14 +155,12 @@
                 <div class="remark" style="margin-top:5px;">申请请在商品兑换页查看。</div>
             </div>
 
-            <!-- 本赛季杯赛规则 -->
             <div id="page-cupRules" class="page hidden">
                 <div class="section-title">本赛季杯赛规则</div>
                 <p style="margin-bottom: 10px;">查看杯赛规则 PDF：</p>
                 <iframe class="pdf-container" src="https://example.com/cup_rules.pdf" title="本赛季杯赛规则"></iframe>
             </div>
 
-            <!-- 本赛季积分兑换活动规则 -->
             <div id="page-eventRules" class="page hidden">
                 <div class="section-title">本赛季积分兑换活动规则</div>
                 <p style="margin-bottom: 10px;">查看积分兑换规则 PDF：</p>
@@ -182,7 +170,6 @@
     </div>
 
     <script>
-        // ==================== 配置 ====================
         var SUPABASE_URL = 'https://hjktfecloctfpaoohzax.supabase.co';
         var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqa3RmZWNsb2N0ZnBhb29oemF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODQ5MzksImV4cCI6MjEwMjQ2MDkzOX0.Kd94mBz7-2EX9Xu3HZUKawIgUWCrVbFsH7rXFyz7WUg';
 
@@ -210,7 +197,6 @@
         var userUsage = {};
         var selectedQty = {};
 
-        // ==================== 密码可见性切换 ====================
         function togglePasswordVisibility(inputId, btn) {
             var input = document.getElementById(inputId);
             if (input.type === 'password') {
@@ -222,7 +208,6 @@
             }
         }
 
-        // ==================== 导航切换函数 ====================
         function switchPage(page) {
             document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
             var activeBtn = document.querySelector('.nav-btn[data-page="' + page + '"]');
@@ -237,14 +222,12 @@
             }
         }
 
-        // ==================== 导航按钮事件 ====================
         document.querySelectorAll('.nav-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 switchPage(btn.getAttribute('data-page'));
             });
         });
 
-        // ==================== 登录 ====================
         async function loginUser() {
             var account = document.getElementById('accountInput').value.trim();
             var password = document.getElementById('passwordInput').value.trim();
@@ -291,11 +274,9 @@
             document.getElementById('mainSection').classList.add('hidden');
             document.getElementById('accountInput').value = '';
             document.getElementById('passwordInput').value = '';
-            // 重置导航到首页
             switchPage('home');
         }
 
-        // ==================== 修改密码（使用表单输入） ====================
         async function changePassword() {
             var oldPassword = document.getElementById('oldPasswordInput').value.trim();
             var newPassword = document.getElementById('newPasswordInput').value.trim();
@@ -330,7 +311,6 @@
             }
         }
 
-        // ==================== 修改用户名（使用表单输入） ====================
         async function changeName() {
             var newName = document.getElementById('newNameInput').value.trim();
             if (!newName) {
@@ -361,7 +341,6 @@
             }
         }
 
-        // ==================== 加载用户已兑换数量 ====================
         async function loadUserUsage() {
             if (!currentUser) return;
             try {
@@ -376,7 +355,6 @@
             }
         }
 
-        // ==================== 加载奖品列表 ====================
         async function loadPrizes() {
             var container = document.getElementById('prizeList');
             container.innerHTML = '<div class="loading">加载中...</div>';
@@ -421,7 +399,6 @@
             }
         }
 
-        // ==================== 数量加减 ====================
         function changeQty(prizeId, delta) {
             var current = selectedQty[prizeId] || 0;
             var newQty = current + delta;
@@ -430,7 +407,6 @@
             document.getElementById('qty-' + prizeId).textContent = newQty;
         }
 
-        // ==================== 兑换 ====================
         async function exchangePrize(prizeId) {
             if (!currentUser) return;
             var quantity = selectedQty[prizeId] || 0;
@@ -465,7 +441,6 @@
             }
         }
 
-        // ==================== 加载兑换记录 ====================
         async function loadRecords() {
             var container = document.getElementById('recordList');
             if (!currentUser) return;
@@ -493,7 +468,6 @@
             }
         }
 
-        // ==================== 加载通知 ====================
         async function loadNotices() {
             var container = document.getElementById('noticeBox');
             container.innerHTML = '<div class="loading">加载中...</div>';
@@ -513,7 +487,6 @@
             }
         }
 
-        // ==================== 加载杯赛情况 ====================
         async function loadCupInfo() {
             var container = document.getElementById('cupInfoContainer');
             container.innerHTML = '<div class="loading">加载中...</div>';
@@ -539,14 +512,12 @@
             }
         }
 
-        // ==================== 加载所有数据 ====================
         function loadAll() {
             loadPrizes();
             loadRecords();
             loadNotices();
         }
 
-        // ==================== 自动登录 ====================
         (function autoLogin() {
             var saved = localStorage.getItem('currentUser');
             if (saved) {
