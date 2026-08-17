@@ -11,8 +11,16 @@
         .login-box { margin-bottom: 20px; }
         .login-box h3 { margin-bottom: 10px; font-weight: 600; color: #000; }
         .login-box input, .account-box input, .modal input { width: 100%; padding: 10px 0; margin-bottom: 15px; border: none; border-bottom: 1px solid #000; background: transparent; color: #000; font-size: 16px; outline: none; }
-        .login-box button, .account-box button { width: 100%; background: #000; color: #fff; border: 1px solid #000; padding: 10px; font-size: 16px; cursor: pointer; }
-        .login-box button:hover, .account-box button:hover { background: #fff; color: #000; }
+        /* 按钮样式：白底黑字/白底红字 */
+        button { cursor: pointer; }
+        .btn-primary, .btn-secondary, .btn-danger, .nav-btn, .logout-btn, .exchange-btn, .qty-btn, .modal-btn { background: #fff; color: #000; border: 1px solid #000; padding: 8px 16px; font-size: 14px; }
+        .btn-danger { background: #fff; color: #ff4444; border-color: #ff4444; }
+        .btn-primary:hover, .btn-secondary:hover, .nav-btn:hover, .logout-btn:hover, .exchange-btn:hover { background: #f0f0f0; }
+        .btn-danger:hover { background: #ff4444; color: #fff; }
+        .login-box button, .account-box button { width: 100%; padding: 10px; font-size: 16px; }
+        .qty-btn { width: 30px; height: 30px; padding: 0; font-size: 18px; line-height: 1; }
+        .delete-btn { background: #fff; color: #ff4444; border: 1px solid #ff4444; padding: 5px 10px; font-size: 12px; }
+        .delete-btn:hover { background: #ff4444; color: #fff; }
         .hidden { display: none; }
         .warning-box { background: #f9f9f9; border: 1px solid #000; padding: 12px; margin-bottom: 15px; font-size: 14px; color: #000; text-align: center; font-weight: 500; }
         .points-card { background: #fff; border: 1px solid #000; padding: 30px; text-align: center; margin-bottom: 20px; }
@@ -31,30 +39,26 @@
         .record-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
         .record-status { display: inline-block; font-size: 12px; color: #fff; margin-top: 5px; background: #000; padding: 2px 8px; }
         .quantity-selector { display: flex; align-items: center; gap: 10px; margin-left: 10px; flex-shrink: 0; }
-        .qty-btn { width: 30px; height: 30px; background: #fff; border: 1px solid #000; cursor: pointer; font-size: 18px; line-height: 1; }
-        .qty-btn:disabled { background: #ccc; border-color: #ccc; color: #666; cursor: not-allowed; }
-        .qty-num { font-size: 18px; min-width: 30px; text-align: center; }
         .exchange-btn { background: #fff; color: #000; border: 1px solid #000; padding: 8px 16px; font-size: 14px; cursor: pointer; margin-left: 10px; flex-shrink: 0; }
         .exchange-btn:hover:not(:disabled) { background: #f0f0f0; }
         .exchange-btn:disabled { background: #ccc; color: #666; border-color: #ccc; cursor: not-allowed; }
-        .delete-btn { background: #ff4444; color: #fff; border: 1px solid #ff4444; padding: 5px 10px; font-size: 12px; cursor: pointer; margin-top: 5px; }
         .empty, .loading { text-align: center; color: #888; padding: 20px; font-size: 14px; }
         .notice-box { margin-top: 20px; background: #f9f9f9; border: 1px solid #000; padding: 15px; max-height: 200px; overflow-y: auto; }
         .notice-box .notice-item { padding: 5px 0; font-size: 13px; border-bottom: 1px dashed #ccc; }
         .notice-box .notice-item:last-child { border-bottom: none; }
-        .logout-btn, .nav-btn { background: #fff; color: #000; border: 1px solid #000; padding: 5px 10px; cursor: pointer; font-size: 14px; transition: background 0.2s, color 0.2s; }
-        .logout-btn:hover, .nav-btn:hover, .nav-btn.active { background: #000; color: #fff; }
-        .greeting { font-size: 18px; font-weight: bold; }
-        .btn-group { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
         .nav-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
-        .nav-btn { margin: 0; }
+        .nav-btn { background: #fff; color: #000; border: 1px solid #000; padding: 5px 10px; cursor: pointer; font-size: 14px; }
+        .nav-btn:hover, .nav-btn.active { background: #f0f0f0; }
+        .logout-btn { background: #fff; color: #000; border: 1px solid #000; padding: 5px 10px; cursor: pointer; font-size: 14px; }
+        .logout-btn:hover { background: #f0f0f0; }
+        .greeting { font-size: 18px; font-weight: bold; }
         .account-box { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; }
         .account-box .divider { border-top: 1px solid #eee; margin: 15px 0; }
         .account-box p { margin-bottom: 5px; }
         .account-box input { margin-bottom: 10px; }
         .account-box button { margin-top: 5px; }
-        .account-box .danger-btn { background: #ff4444; border-color: #ff4444; color: #fff; }
-        .account-box .danger-btn:hover { background: #fff; color: #ff4444; }
+        .danger-btn { background: #fff; color: #ff4444; border-color: #ff4444; }
+        .danger-btn:hover { background: #ff4444; color: #fff; }
         .cup-info { font-size: 16px; line-height: 1.8; }
         .player-stats { display: flex; flex-direction: column; gap: 15px; }
         .player-card { border: 1px solid #000; padding: 15px; }
@@ -74,7 +78,7 @@
         .award-gold .stat-label, .award-gold .stat-number { color: gold; }
         .remark { margin-top: 20px; font-size: 14px; }
         .pdf-container { width: 100%; height: 500px; border: 1px solid #000; margin-top: 10px; }
-        .prize-link { text-align: left; margin-top: 10px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; } /* 补全线段 */
+        .prize-link { text-align: left; margin-top: 10px; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
         .prize-link a { color: #000; text-decoration: none; cursor: pointer; }
         .prize-link a:hover { font-weight: bold; }
         .pdf-menu { display: flex; gap: 10px; margin-bottom: 20px; }
@@ -88,8 +92,8 @@
         .modal .warning-text { color: red; font-size: 12px; margin-top: -5px; margin-bottom: 10px; display: none; }
         .modal .warning-text.show { display: block; }
         .modal button { background: #fff; color: #000; border: 1px solid #000; padding: 8px 16px; cursor: pointer; margin-right: 10px; }
-        .modal button.danger { background: #ff4444; border-color: #ff4444; color: #fff; }
-        .modal button.danger:hover { background: #fff; color: #ff4444; }
+        .modal button.danger { background: #fff; color: #ff4444; border-color: #ff4444; }
+        .modal button.danger:hover { background: #ff4444; color: #fff; }
         @media (max-width: 600px) {
             body { padding: 10px; }
             .container { padding: 15px; }
@@ -116,7 +120,7 @@
             <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分。</div>
             <input type="text" id="accountInput" placeholder="账号">
             <input type="password" id="passwordInput" placeholder="密码">
-            <button onclick="loginUser()">登录</button>
+            <button class="btn-primary" onclick="loginUser()">登录</button>
         </div>
 
         <!-- 主界面（登录后显示） -->
@@ -137,8 +141,8 @@
             <!-- 首页 -->
             <div id="page-home" class="page">
                 <div class="pdf-menu">
-                    <button onclick="switchPage('cupRules')">查看本赛季杯赛规则</button>
-                    <button onclick="switchPage('eventRules')">查看积分兑换规则</button>
+                    <button class="btn-primary" onclick="switchPage('cupRules')">查看本赛季杯赛规则</button>
+                    <button class="btn-primary" onclick="switchPage('eventRules')">查看积分兑换规则</button>
                 </div>
 
                 <div class="points-card">
@@ -154,8 +158,12 @@
 
                 <div class="section-title">我的兑换记录</div>
                 <div id="recordList"><div class="loading">加载中...</div></div>
-                <div class="section-title">管理员通知区</div>
-                <div class="notice-box" id="noticeBox"><div class="loading">加载中...</div></div>
+
+                <!-- 管理员通知区（仅管理员可见） -->
+                <div id="adminNoticeSection" style="display: none;">
+                    <div class="section-title">管理员通知区</div>
+                    <div class="notice-box" id="noticeBox"><div class="loading">加载中...</div></div>
+                </div>
             </div>
 
             <!-- 账号管理 -->
@@ -165,23 +173,22 @@
                     <p><strong>修改登录名和用户名</strong></p>
                     <input type="text" id="newAccountInput" placeholder="新登录名">
                     <input type="text" id="newNameInput" placeholder="新用户名">
-                    <button onclick="changeAccountAndName()">确认修改</button>
+                    <button class="btn-primary" onclick="changeAccountAndName()">确认修改</button>
                     <div class="divider"></div>
-                    <button onclick="openSwitchAccountModal()">切换账号</button>
+                    <button class="btn-primary" onclick="openSwitchAccountModal()">切换账号</button>
                 </div>
 
-                <!-- 账号安全子菜单 -->
                 <div class="section-title">账号安全</div>
                 <div class="account-box">
-                    <button onclick="openPasswordModal()">修改密码</button>
-                    <button class="danger-btn" onclick="openDeleteAccountModal()">注销账号</button>
+                    <button class="btn-primary" onclick="openPasswordModal()">修改密码</button>
+                    <button class="btn-danger" onclick="openDeleteAccountModal()">注销账号</button>
                 </div>
             </div>
 
-            <!-- 本赛季杯赛情况（按队员展示） -->
+            <!-- 本赛季杯赛情况 -->
             <div id="page-cupInfo" class="page hidden">
                 <div class="section-title">本赛季杯赛情况</div>
-                <!-- 管理员提示（仅管理员可见） -->
+                <!-- 管理员提示 -->
                 <div id="adminNotice" style="display: none; margin-bottom: 10px; padding: 10px; background: #f9f9f9; border: 1px solid #000;">
                     由于你是管理员，你将可以看到本赛季杯赛全体队员的情况。
                 </div>
@@ -216,8 +223,8 @@
             <input type="password" id="newPasswordInput" placeholder="新密码">
             <input type="password" id="confirmPasswordInput" placeholder="确认新密码">
             <div>
-                <button onclick="submitPasswordChange()">确认</button>
-                <button onclick="closeModal('passwordModal')">取消</button>
+                <button class="modal-btn" onclick="submitPasswordChange()">确认</button>
+                <button class="modal-btn" onclick="closeModal('passwordModal')">取消</button>
             </div>
         </div>
     </div>
@@ -230,8 +237,8 @@
             <input type="password" id="deletePasswordInput" placeholder="输入密码">
             <div class="warning-text" id="deleteWarning">一旦你完成了这些，你的账号就将失效，你的积分可能不会被继续保存在用户名单中。</div>
             <div>
-                <button class="danger" onclick="submitDeleteAccount()">确认注销</button>
-                <button onclick="closeModal('deleteAccountModal')">取消</button>
+                <button class="modal-btn danger" onclick="submitDeleteAccount()">确认注销</button>
+                <button class="modal-btn" onclick="closeModal('deleteAccountModal')">取消</button>
             </div>
         </div>
     </div>
@@ -243,8 +250,8 @@
             <p>输入新的登录名，如果切换失败将自动保留原账号。</p>
             <input type="text" id="switchAccountInput" placeholder="新登录名">
             <div>
-                <button onclick="submitSwitchAccount()">确认切换</button>
-                <button onclick="closeModal('switchAccountModal')">取消</button>
+                <button class="modal-btn" onclick="submitSwitchAccount()">确认切换</button>
+                <button class="modal-btn" onclick="closeModal('switchAccountModal')">取消</button>
             </div>
         </div>
     </div>
@@ -345,6 +352,12 @@
             document.getElementById('greetingText').textContent = '你好，' + currentUser.name;
             document.getElementById('pointsDisplay').textContent = currentUser.points;
             updatePointsDisplay();
+            // 管理员通知区仅管理员可见
+            if (currentUser.account === '1') {
+                document.getElementById('adminNoticeSection').style.display = 'block';
+            } else {
+                document.getElementById('adminNoticeSection').style.display = 'none';
+            }
             loadAll();
             resetAutoLogout();
         }
@@ -685,6 +698,7 @@
 
         async function loadNotices() {
             var container = document.getElementById('noticeBox');
+            if (!container) return;
             container.innerHTML = '<div class="loading">加载中...</div>';
             try {
                 var data = await apiFetch('/rest/v1/exchanges?select=*&order=created_at.desc&limit=20');
@@ -705,9 +719,7 @@
         async function loadCupInfo() {
             var container = document.getElementById('cupInfoContainer');
             container.innerHTML = '<div class="loading">加载中...</div>';
-            // 判断是否为管理员（账号1）
             var isAdmin = currentUser && currentUser.account === '1';
-            // 显示管理员提示
             var adminNotice = document.getElementById('adminNotice');
             if (isAdmin) {
                 adminNotice.style.display = 'block';
@@ -718,18 +730,20 @@
             try {
                 var queryPath = '/rest/v1/player_stats?select=*';
                 if (!isAdmin) {
-                    // 普通队员只查询自己的战绩
                     queryPath += '&user_id=eq.' + currentUser.id;
                 }
                 queryPath += '&order=created_at.asc';
 
                 var statsData = await apiFetch(queryPath);
                 if (!Array.isArray(statsData) || statsData.length === 0) {
-                    container.innerHTML = '<div class="empty">暂无数据</div>';
+                    if (!isAdmin) {
+                        container.innerHTML = '<div class="empty">你还没有战绩记录</div>';
+                    } else {
+                        container.innerHTML = '<div class="empty">暂无数据</div>';
+                    }
                     return;
                 }
 
-                // 获取用户姓名映射
                 var userIds = statsData.map(function(stat) { return stat.user_id; }).join(',');
                 var usersData = await apiFetch('/rest/v1/users?select=id,name&id=in.(' + userIds + ')');
                 var userMap = {};
@@ -737,11 +751,9 @@
                     userMap[user.id] = user.name;
                 });
 
-                // 渲染
                 var html = '<div class="player-stats">';
                 statsData.forEach(function(stat) {
                     var name = userMap[stat.user_id] || '未知';
-                    // 颜色规则：冠军、亚军、季军≥3变色；金球奖、金靴奖、最佳进球>2变色
                     var championLabelClass = stat.champion >= 3 ? 'champion-label gold' : '';
                     var championNumberClass = stat.champion >= 3 ? 'champion-number red' : '';
                     var runnerLabelClass = stat.runner_up >= 3 ? 'runner-label silver' : '';
@@ -778,7 +790,9 @@
         function loadAll() {
             loadPrizes();
             loadRecords();
-            loadNotices();
+            if (currentUser && currentUser.account === '1') {
+                loadNotices();
+            }
         }
 
         window.addEventListener('load', function() {
