@@ -10,7 +10,7 @@
         .container { background: #fff; border: 1px solid #000; padding: 20px; }
         .login-box { margin-bottom: 20px; }
         .login-box h3 { margin-bottom: 10px; font-weight: 600; color: #000; }
-        .login-box input, .account-box input, .modal input { width: 100%; padding: 10px; margin-bottom: 10px; border: none; border-bottom: 1px solid #000; background: #fff; color: #000; font-size: 16px; outline: none; }
+        .login-box input, .account-box input, .modal input { width: 100%; padding: 10px 0; margin-bottom: 15px; border: none; border-bottom: 1px solid #000; background: transparent; color: #000; font-size: 16px; outline: none; }
         .login-box button, .account-box button { width: 100%; background: #000; color: #fff; border: 1px solid #000; padding: 10px; font-size: 16px; cursor: pointer; }
         .login-box button:hover, .account-box button:hover { background: #fff; color: #000; }
         .hidden { display: none; }
@@ -84,7 +84,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .modal { background: #fff; border: 1px solid #000; padding: 20px; width: 90%; max-width: 400px; }
         .modal h4 { margin-bottom: 15px; }
-        .modal input { margin-bottom: 10px; }
+        .modal input { margin-bottom: 15px; }
         .modal .warning-text { color: red; font-size: 12px; margin-top: -5px; margin-bottom: 10px; display: none; }
         .modal .warning-text.show { display: block; }
         .modal button { background: #000; color: #fff; border: 1px solid #000; padding: 8px 16px; cursor: pointer; margin-right: 10px; }
@@ -110,6 +110,7 @@
 </head>
 <body>
     <div class="container">
+        <!-- 登录界面 -->
         <div id="loginSection" class="login-box">
             <h3>队员登录</h3>
             <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分</div>
@@ -118,6 +119,7 @@
             <button onclick="loginUser()">登录</button>
         </div>
 
+        <!-- 主界面（登录后显示） -->
         <div id="mainSection" class="hidden">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <span class="greeting" id="greetingText">你好，</span>
@@ -125,12 +127,14 @@
             </div>
             <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分</div>
 
+            <!-- 导航栏 -->
             <div class="nav-bar">
                 <button class="nav-btn active" data-page="home">首页</button>
                 <button class="nav-btn" data-page="account">账号管理</button>
                 <button class="nav-btn" data-page="cupInfo">本赛季杯赛情况</button>
             </div>
 
+            <!-- 首页 -->
             <div id="page-home" class="page">
                 <div class="pdf-menu">
                     <button onclick="switchPage('cupRules')">查看本赛季杯赛规则</button>
@@ -154,6 +158,7 @@
                 <div class="notice-box" id="noticeBox"><div class="loading">加载中...</div></div>
             </div>
 
+            <!-- 账号管理 -->
             <div id="page-account" class="page hidden">
                 <div class="section-title">账号管理</div>
                 <div class="account-box">
@@ -163,6 +168,7 @@
                     <button onclick="changeAccountAndName()">确认修改</button>
                 </div>
 
+                <!-- 账号安全子菜单 -->
                 <div class="section-title">账号安全</div>
                 <div class="account-box">
                     <button onclick="openPasswordModal()">修改密码</button>
@@ -170,6 +176,7 @@
                 </div>
             </div>
 
+            <!-- 本赛季杯赛情况（按队员展示） -->
             <div id="page-cupInfo" class="page hidden">
                 <div class="section-title">本赛季杯赛情况</div>
                 <div class="cup-info" id="cupInfoContainer"><div class="loading">加载中...</div></div>
@@ -179,12 +186,14 @@
                 </div>
             </div>
 
+            <!-- 本赛季杯赛规则 -->
             <div id="page-cupRules" class="page hidden">
                 <div class="section-title">本赛季杯赛规则</div>
                 <p style="margin-bottom: 10px;">查看杯赛规则 PDF：</p>
                 <iframe class="pdf-container" src="cup_rules.pdf" title="本赛季杯赛规则"></iframe>
             </div>
 
+            <!-- 本赛季积分兑换活动规则 -->
             <div id="page-eventRules" class="page hidden">
                 <div class="section-title">本赛季积分兑换活动规则</div>
                 <p style="margin-bottom: 10px;">查看积分兑换规则 PDF：</p>
@@ -194,7 +203,7 @@
     </div>
 
     <!-- 修改密码模态框 -->
-    <div id="passwordModal" class="modal-overlay hidden">
+    <div id="passwordModal" class="modal-overlay" style="display:none;">
         <div class="modal">
             <h4>修改密码</h4>
             <input type="password" id="oldPasswordInput" placeholder="原密码">
@@ -208,7 +217,7 @@
     </div>
 
     <!-- 注销账号模态框 -->
-    <div id="deleteAccountModal" class="modal-overlay hidden">
+    <div id="deleteAccountModal" class="modal-overlay" style="display:none;">
         <div class="modal">
             <h4>注销账号</h4>
             <p>你现在正在注销你的本赛季杯赛积分兑换活动配套系统账号，输入你的密码以继续。</p>
@@ -399,11 +408,13 @@
             document.getElementById('oldPasswordInput').value = '';
             document.getElementById('newPasswordInput').value = '';
             document.getElementById('confirmPasswordInput').value = '';
-            document.getElementById('passwordModal').classList.remove('hidden');
+            document.getElementById('passwordModal').style.display = 'flex';
         }
 
         function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
+            var modal = document.getElementById(modalId);
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
         }
 
         async function submitPasswordChange() {
@@ -444,7 +455,7 @@
         function openDeleteAccountModal() {
             document.getElementById('deletePasswordInput').value = '';
             document.getElementById('deleteWarning').classList.remove('show');
-            document.getElementById('deleteAccountModal').classList.remove('hidden');
+            document.getElementById('deleteAccountModal').style.display = 'flex';
         }
 
         document.getElementById('deletePasswordInput').addEventListener('input', function() {
@@ -690,6 +701,11 @@
             loadRecords();
             loadNotices();
         }
+
+        window.addEventListener('load', function() {
+            closeModal('passwordModal');
+            closeModal('deleteAccountModal');
+        });
 
         (function autoLogin() {
             var saved = localStorage.getItem('currentUser');
