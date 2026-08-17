@@ -56,9 +56,11 @@
         .stat-label { font-size: 14px; color: #555; }
         .remark { margin-top: 20px; font-size: 14px; }
         .pdf-container { width: 100%; height: 500px; border: 1px solid #000; margin-top: 10px; }
-        .faq-btn { background: #000; color: #fff; border: 1px solid #000; border-radius: 50%; width: 25px; height: 25px; line-height: 23px; text-align: center; cursor: pointer; display: inline-block; margin-left: 5px; }
         .prize-link { text-align: center; margin-top: 10px; }
         .prize-link a { color: #000; text-decoration: underline; cursor: pointer; }
+        .pdf-menu { display: flex; gap: 10px; margin-bottom: 20px; }
+        .pdf-menu button { flex: 1; background: #fff; color: #000; border: 1px solid #000; padding: 10px; font-size: 14px; cursor: pointer; text-align: center; }
+        .pdf-menu button:hover { background: #000; color: #fff; }
         @media (max-width: 600px) {
             body { padding: 10px; }
             .container { padding: 15px; }
@@ -71,6 +73,7 @@
             .stat-number { font-size: 24px; }
             .quantity-selector { gap: 5px; }
             .qty-btn { width: 25px; height: 25px; }
+            .pdf-menu { flex-direction: column; }
         }
     </style>
 </head>
@@ -93,21 +96,26 @@
             </div>
             <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分</div>
 
-            <!-- 导航栏 -->
+            <!-- 导航栏（移除PDF菜单） -->
             <div class="nav-bar">
                 <button class="nav-btn active" data-page="home">首页</button>
                 <button class="nav-btn" data-page="account">账号管理</button>
                 <button class="nav-btn" data-page="cupInfo">本赛季杯赛情况</button>
-                <button class="nav-btn" data-page="cupRules">本赛季杯赛规则</button>
-                <button class="nav-btn" data-page="eventRules">本赛季积分兑换活动规则</button>
             </div>
 
             <!-- 首页 -->
             <div id="page-home" class="page">
+                <!-- PDF菜单（置于奖品栏目上方） -->
+                <div class="pdf-menu">
+                    <button onclick="switchPage('cupRules')">查看本赛季杯赛规则</button>
+                    <button onclick="switchPage('eventRules')">查看积分兑换规则</button>
+                </div>
+
                 <div class="points-card">
                     <div class="points-label">我的积分</div>
                     <div class="points-value" id="pointsDisplay">0</div>
                 </div>
+
                 <div class="section-title">可兑换奖品</div>
                 <div id="prizeList"><div class="loading">加载中...</div></div>
                 <div class="prize-link">
@@ -140,10 +148,10 @@
                 <div class="section-title">本赛季杯赛情况</div>
                 <div class="cup-info" id="cupInfoContainer"><div class="loading">加载中...</div></div>
                 <div class="remark">
-                    当你5天内出现有3次冠军并净胜球46球，你可获得额外的5积分。
-                    <span class="faq-btn" onclick="alert('解释：在5天内获得3次冠军并且总净胜球达到46球，可额外获得5积分。')">?</span>
+                    当你5天内出现有3次冠军并净胜球46球，你可获得额外的5积分。<br>
+                    <span style="color:#555;">解释：在5天内获得3次冠军并且总净胜球达到46球，可额外获得5积分。</span><br>
+                    <span style="color:#555;">申请请在商品兑换页查看。</span>
                 </div>
-                <div class="remark" style="margin-top:5px;">申请请在商品兑换页查看。</div>
             </div>
 
             <!-- 本赛季杯赛规则 -->
