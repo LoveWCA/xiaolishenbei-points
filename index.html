@@ -84,7 +84,7 @@
             .quantity-selector { gap: 5px; }
             .qty-btn { width: 25px; height: 25px; }
             .pdf-menu { flex-direction: column; }
-            .row-champion-runner, .row-third-golden-boot { flex-wrap: nowrap; } /* 不换行 */
+            .row-champion-runner, .row-third-golden-boot { flex-wrap: nowrap; }
         }
     </style>
 </head>
@@ -526,33 +526,43 @@
             var container = document.getElementById('cupInfoContainer');
             container.innerHTML = '<div class="loading">加载中...</div>';
             try {
-                // 查询球员战绩，并关联用户姓名
-                var data = await apiFetch('/rest/v1/player_stats?select=*,users(name)&order=created_at.asc');
-                if (Array.isArray(data) && data.length > 0) {
-                    var html = '<div class="player-stats">';
-                    data.forEach(function(stat) {
-                        var name = stat.users ? stat.users.name : '未知';
-                        html += '<div class="player-card">' +
-                            '<div class="player-name">' + name + '</div>' +
-                            '<div class="row-champion-runner">' +
-                                '<div class="stat-item"><div class="stat-number">' + stat.champion + '</div><div class="stat-label">冠军</div></div>' +
-                                '<div class="stat-item"><div class="stat-number">' + stat.runner_up + '</div><div class="stat-label">亚军</div></div>' +
-                            '</div>' +
-                            '<div class="row-third-golden-boot">' +
-                                '<div class="stat-item"><div class="stat-number">' + stat.third_place + '</div><div class="stat-label">季军</div></div>' +
-                                '<div class="stat-item"><div class="stat-number">' + stat.golden_ball + '</div><div class="stat-label">金球奖</div></div>' +
-                                '<div class="stat-item"><div class="stat-number">' + stat.golden_boot + '</div><div class="stat-label">金靴奖</div></div>' +
-                            '</div>' +
-                            '<div class="row-best-goal">' +
-                                '<div class="stat-item"><div class="stat-number">' + stat.best_goal + '</div><div class="stat-label">最佳进球</div></div>' +
-                            '</div>' +
-                        '</div>';
-                    });
-                    html += '</div>';
-                    container.innerHTML = html;
-                } else {
+                // 第一步：获取 player_stats 表所有数据
+                var statsData = await apiFetch('/rest/v1/player_stats?select=*&order=created_at.asc');
+                if (!Array.isArray(statsData) || statsData.length === 0) {
                     container.innerHTML = '<div class="empty">暂无数据</div>';
+                    return;
                 }
+
+                // 第二步：获取所有用户信息（id 和 name）
+                var userIds = statsData.map(function(stat) { return stat.user_id; }).join(',');
+                var usersData = await apiFetch('/rest/v1/users?select=id,name&id=in.(' + userIds + ')');
+                var userMap = {};
+                usersData.forEach(function(user) {
+                    userMap[user.id] = user.name;
+                });
+
+                // 渲染
+                var html = '<div class="player-stats">';
+                statsData.forEach(function(stat) {
+                    var name = userMap[stat.user_id] || '未知';
+                    html += '<div class="player-card">' +
+                        '<div class="player-name">' + name + '</div>' +
+                        '<div class="row-champion-runner">' +
+                            '<div class="stat-item"><div class="stat-number">' + stat.champion + '</div><div class="stat-label">冠军</div></div>' +
+                            '<div class="stat-item"><div class="stat-number">' + stat.runner_up + '</div><div class="stat-label">亚军</div></div>' +
+                        '</div>' +
+                        '<div class="row-third-golden-boot">' +
+                            '<div class="stat-item"><div class="stat-number">' + stat.third_place + '</div><div class="stat-label">季军</div></div>' +
+                            '<div class="stat-item"><div class="stat-number">' + stat.golden_ball + '</div><div class="stat-label">金球奖</div></div>' +
+                            '<div class="stat-item"><div class="stat-number">' + stat.golden_boot + '</div><div class="stat-label">金靴奖</div></div>' +
+                        '</div>' +
+                        '<div class="row-best-goal">' +
+                            '<div class="stat-item"><div class="stat-number">' + stat.best_goal + '</div><div class="stat-label">最佳进球</div></div>' +
+                        '</div>' +
+                    '</div>';
+                });
+                html += '</div>';
+                container.innerHTML = html;
             } catch (e) {
                 console.error('加载杯赛情况失败:', e);
                 container.innerHTML = '<div class="empty">加载失败</div>';
