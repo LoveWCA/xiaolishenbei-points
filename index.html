@@ -11,16 +11,13 @@
         .login-box { margin-bottom: 20px; }
         .login-box h3 { margin-bottom: 10px; font-weight: 600; color: #000; }
         .login-box input, .account-box input, .modal input { width: 100%; padding: 10px 0; margin-bottom: 15px; border: none; border-bottom: 1px solid #000; background: transparent; color: #000; font-size: 16px; outline: none; }
-        /* 按钮样式：白底黑字/白底红字 */
-        button { cursor: pointer; }
-        .btn-primary, .btn-secondary, .btn-danger, .nav-btn, .logout-btn, .exchange-btn, .qty-btn, .modal-btn { background: #fff; color: #000; border: 1px solid #000; padding: 8px 16px; font-size: 14px; }
-        .btn-danger { background: #fff; color: #ff4444; border-color: #ff4444; }
-        .btn-primary:hover, .btn-secondary:hover, .nav-btn:hover, .logout-btn:hover, .exchange-btn:hover { background: #f0f0f0; }
-        .btn-danger:hover { background: #ff4444; color: #fff; }
+        /* 所有按钮统一白底黑字，危险按钮白底红字 */
+        button { background: #fff; color: #000; border: 1px solid #000; padding: 8px 16px; font-size: 14px; cursor: pointer; }
+        button:hover { background: #f0f0f0; }
+        .btn-danger, .danger-btn, .delete-btn, .modal-btn.danger { background: #fff; color: #ff4444; border-color: #ff4444; }
+        .btn-danger:hover, .danger-btn:hover, .delete-btn:hover, .modal-btn.danger:hover { background: #ff4444; color: #fff; }
         .login-box button, .account-box button { width: 100%; padding: 10px; font-size: 16px; }
         .qty-btn { width: 30px; height: 30px; padding: 0; font-size: 18px; line-height: 1; }
-        .delete-btn { background: #fff; color: #ff4444; border: 1px solid #ff4444; padding: 5px 10px; font-size: 12px; }
-        .delete-btn:hover { background: #ff4444; color: #fff; }
         .hidden { display: none; }
         .warning-box { background: #f9f9f9; border: 1px solid #000; padding: 12px; margin-bottom: 15px; font-size: 14px; color: #000; text-align: center; font-weight: 500; }
         .points-card { background: #fff; border: 1px solid #000; padding: 30px; text-align: center; margin-bottom: 20px; }
@@ -37,7 +34,7 @@
         .prize-stock, .record-time { font-size: 12px; color: #777; margin-top: 3px; }
         .prize-rules { font-size: 12px; color: #888; margin-top: 3px; }
         .record-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
-        .record-status { display: inline-block; font-size: 12px; color: #fff; margin-top: 5px; background: #000; padding: 2px 8px; }
+        .record-status { display: inline-block; font-size: 12px; color: #000; margin-top: 5px; background: #fff; border: 1px solid #000; padding: 2px 8px; }
         .quantity-selector { display: flex; align-items: center; gap: 10px; margin-left: 10px; flex-shrink: 0; }
         .exchange-btn { background: #fff; color: #000; border: 1px solid #000; padding: 8px 16px; font-size: 14px; cursor: pointer; margin-left: 10px; flex-shrink: 0; }
         .exchange-btn:hover:not(:disabled) { background: #f0f0f0; }
@@ -57,8 +54,6 @@
         .account-box p { margin-bottom: 5px; }
         .account-box input { margin-bottom: 10px; }
         .account-box button { margin-top: 5px; }
-        .danger-btn { background: #fff; color: #ff4444; border-color: #ff4444; }
-        .danger-btn:hover { background: #ff4444; color: #fff; }
         .cup-info { font-size: 16px; line-height: 1.8; }
         .player-stats { display: flex; flex-direction: column; gap: 15px; }
         .player-card { border: 1px solid #000; padding: 15px; }
@@ -84,7 +79,7 @@
         .pdf-menu { display: flex; gap: 10px; margin-bottom: 20px; }
         .pdf-menu button { flex: 1; background: #fff; color: #000; border: 1px solid #000; padding: 10px; font-size: 14px; cursor: pointer; text-align: center; }
         .pdf-menu button:hover { background: #f0f0f0; }
-        .faq-btn { background: #000; color: #fff; border: 1px solid #000; border-radius: 50%; width: 25px; height: 25px; line-height: 23px; text-align: center; cursor: pointer; display: inline-block; margin-left: 5px; }
+        .faq-btn { background: #fff; color: #000; border: 1px solid #000; border-radius: 50%; width: 25px; height: 25px; line-height: 23px; text-align: center; cursor: pointer; display: inline-block; margin-left: 5px; }
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .modal { background: #fff; border: 1px solid #000; padding: 20px; width: 90%; max-width: 400px; }
         .modal h4 { margin-bottom: 15px; }
@@ -120,7 +115,7 @@
             <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分。</div>
             <input type="text" id="accountInput" placeholder="账号">
             <input type="password" id="passwordInput" placeholder="密码">
-            <button class="btn-primary" onclick="loginUser()">登录</button>
+            <button onclick="loginUser()">登录</button>
         </div>
 
         <!-- 主界面（登录后显示） -->
@@ -141,8 +136,8 @@
             <!-- 首页 -->
             <div id="page-home" class="page">
                 <div class="pdf-menu">
-                    <button class="btn-primary" onclick="switchPage('cupRules')">查看本赛季杯赛规则</button>
-                    <button class="btn-primary" onclick="switchPage('eventRules')">查看积分兑换规则</button>
+                    <button onclick="switchPage('cupRules')">查看本赛季杯赛规则</button>
+                    <button onclick="switchPage('eventRules')">查看积分兑换规则</button>
                 </div>
 
                 <div class="points-card">
@@ -173,22 +168,21 @@
                     <p><strong>修改登录名和用户名</strong></p>
                     <input type="text" id="newAccountInput" placeholder="新登录名">
                     <input type="text" id="newNameInput" placeholder="新用户名">
-                    <button class="btn-primary" onclick="changeAccountAndName()">确认修改</button>
+                    <button onclick="changeAccountAndName()">确认修改</button>
                     <div class="divider"></div>
-                    <button class="btn-primary" onclick="openSwitchAccountModal()">切换账号</button>
+                    <button onclick="openSwitchAccountModal()">切换账号</button>
                 </div>
 
                 <div class="section-title">账号安全</div>
                 <div class="account-box">
-                    <button class="btn-primary" onclick="openPasswordModal()">修改密码</button>
-                    <button class="btn-danger" onclick="openDeleteAccountModal()">注销账号</button>
+                    <button onclick="openPasswordModal()">修改密码</button>
+                    <button class="danger-btn" onclick="openDeleteAccountModal()">注销账号</button>
                 </div>
             </div>
 
             <!-- 本赛季杯赛情况 -->
             <div id="page-cupInfo" class="page hidden">
                 <div class="section-title">本赛季杯赛情况</div>
-                <!-- 管理员提示 -->
                 <div id="adminNotice" style="display: none; margin-bottom: 10px; padding: 10px; background: #f9f9f9; border: 1px solid #000;">
                     由于你是管理员，你将可以看到本赛季杯赛全体队员的情况。
                 </div>
@@ -223,8 +217,8 @@
             <input type="password" id="newPasswordInput" placeholder="新密码">
             <input type="password" id="confirmPasswordInput" placeholder="确认新密码">
             <div>
-                <button class="modal-btn" onclick="submitPasswordChange()">确认</button>
-                <button class="modal-btn" onclick="closeModal('passwordModal')">取消</button>
+                <button onclick="submitPasswordChange()">确认</button>
+                <button onclick="closeModal('passwordModal')">取消</button>
             </div>
         </div>
     </div>
@@ -237,8 +231,8 @@
             <input type="password" id="deletePasswordInput" placeholder="输入密码">
             <div class="warning-text" id="deleteWarning">一旦你完成了这些，你的账号就将失效，你的积分可能不会被继续保存在用户名单中。</div>
             <div>
-                <button class="modal-btn danger" onclick="submitDeleteAccount()">确认注销</button>
-                <button class="modal-btn" onclick="closeModal('deleteAccountModal')">取消</button>
+                <button class="danger" onclick="submitDeleteAccount()">确认注销</button>
+                <button onclick="closeModal('deleteAccountModal')">取消</button>
             </div>
         </div>
     </div>
@@ -250,8 +244,8 @@
             <p>输入新的登录名，如果切换失败将自动保留原账号。</p>
             <input type="text" id="switchAccountInput" placeholder="新登录名">
             <div>
-                <button class="modal-btn" onclick="submitSwitchAccount()">确认切换</button>
-                <button class="modal-btn" onclick="closeModal('switchAccountModal')">取消</button>
+                <button onclick="submitSwitchAccount()">确认切换</button>
+                <button onclick="closeModal('switchAccountModal')">取消</button>
             </div>
         </div>
     </div>
@@ -352,7 +346,6 @@
             document.getElementById('greetingText').textContent = '你好，' + currentUser.name;
             document.getElementById('pointsDisplay').textContent = currentUser.points;
             updatePointsDisplay();
-            // 管理员通知区仅管理员可见
             if (currentUser.account === '1') {
                 document.getElementById('adminNoticeSection').style.display = 'block';
             } else {
