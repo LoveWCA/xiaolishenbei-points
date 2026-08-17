@@ -182,7 +182,7 @@
     </div>
 
     <script>
-        //配置
+        // ==================== 配置 ====================
         var SUPABASE_URL = 'https://hjktfecloctfpaoohzax.supabase.co';
         var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqa3RmZWNsb2N0ZnBhb29oemF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODQ5MzksImV4cCI6MjEwMjQ2MDkzOX0.Kd94mBz7-2EX9Xu3HZUKawIgUWCrVbFsH7rXFyz7WUg';
 
@@ -210,19 +210,19 @@
         var userUsage = {};
         var selectedQty = {};
 
-        //密码可见/不可见切换脚本
+        // ==================== 密码可见性切换 ====================
         function togglePasswordVisibility(inputId, btn) {
             var input = document.getElementById(inputId);
             if (input.type === 'password') {
                 input.type = 'text';
-                btn.textContent = '·';
+                btn.textContent = '🙈';
             } else {
                 input.type = 'password';
                 btn.textContent = '👁';
             }
         }
 
-        //导航切换函数
+        // ==================== 导航切换函数 ====================
         function switchPage(page) {
             document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
             var activeBtn = document.querySelector('.nav-btn[data-page="' + page + '"]');
@@ -237,14 +237,14 @@
             }
         }
 
-        //导航按钮
+        // ==================== 导航按钮事件 ====================
         document.querySelectorAll('.nav-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 switchPage(btn.getAttribute('data-page'));
             });
         });
 
-        //用户登录帐号页面
+        // ==================== 登录 ====================
         async function loginUser() {
             var account = document.getElementById('accountInput').value.trim();
             var password = document.getElementById('passwordInput').value.trim();
@@ -295,7 +295,7 @@
             switchPage('home');
         }
 
-        //修改密码脚本
+        // ==================== 修改密码（使用表单输入） ====================
         async function changePassword() {
             var oldPassword = document.getElementById('oldPasswordInput').value.trim();
             var newPassword = document.getElementById('newPasswordInput').value.trim();
@@ -330,7 +330,7 @@
             }
         }
 
-        //修改用户名脚本
+        // ==================== 修改用户名（使用表单输入） ====================
         async function changeName() {
             var newName = document.getElementById('newNameInput').value.trim();
             if (!newName) {
@@ -361,7 +361,7 @@
             }
         }
 
-        //加载用户兑换奖品数量
+        // ==================== 加载用户已兑换数量 ====================
         async function loadUserUsage() {
             if (!currentUser) return;
             try {
@@ -376,7 +376,7 @@
             }
         }
 
-        //奖品表
+        // ==================== 加载奖品列表 ====================
         async function loadPrizes() {
             var container = document.getElementById('prizeList');
             container.innerHTML = '<div class="loading">加载中...</div>';
@@ -421,7 +421,7 @@
             }
         }
 
-        //数量控制脚本
+        // ==================== 数量加减 ====================
         function changeQty(prizeId, delta) {
             var current = selectedQty[prizeId] || 0;
             var newQty = current + delta;
@@ -430,7 +430,7 @@
             document.getElementById('qty-' + prizeId).textContent = newQty;
         }
 
-        //兑换详情页
+        // ==================== 兑换 ====================
         async function exchangePrize(prizeId) {
             if (!currentUser) return;
             var quantity = selectedQty[prizeId] || 0;
@@ -465,7 +465,7 @@
             }
         }
 
-        //用户兑换记录
+        // ==================== 加载兑换记录 ====================
         async function loadRecords() {
             var container = document.getElementById('recordList');
             if (!currentUser) return;
@@ -493,7 +493,7 @@
             }
         }
 
-        //加载通知脚本
+        // ==================== 加载通知 ====================
         async function loadNotices() {
             var container = document.getElementById('noticeBox');
             container.innerHTML = '<div class="loading">加载中...</div>';
@@ -513,7 +513,7 @@
             }
         }
 
-        //加载用户本赛季杯赛成绩
+        // ==================== 加载杯赛情况 ====================
         async function loadCupInfo() {
             var container = document.getElementById('cupInfoContainer');
             container.innerHTML = '<div class="loading">加载中...</div>';
@@ -539,14 +539,14 @@
             }
         }
 
-        //加载3个表
+        // ==================== 加载所有数据 ====================
         function loadAll() {
             loadPrizes();
             loadRecords();
             loadNotices();
         }
 
-        //自动登录上一个用户账号脚本
+        // ==================== 自动登录 ====================
         (function autoLogin() {
             var saved = localStorage.getItem('currentUser');
             if (saved) {
