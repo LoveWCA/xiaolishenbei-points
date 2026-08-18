@@ -10,7 +10,7 @@
         .container { background: #fff; border: 1px solid #000; padding: 20px; }
         .login-box { margin-bottom: 20px; }
         .login-box h3 { margin-bottom: 10px; font-weight: 600; color: #000; }
-        input, .modal input { width: 100%; padding: 10px 0; margin-bottom: 15px; border: none; border-bottom: 1px solid #000; background: transparent; color: #000; font-size: 16px; outline: none; }
+        input, .modal input, textarea { width: 100%; padding: 10px 0; margin-bottom: 15px; border: none; border-bottom: 1px solid #000; background: transparent; color: #000; font-size: 16px; outline: none; resize: vertical; }
         button { background: #fff; color: #000; border: 1px solid #000; padding: 8px 16px; font-size: 14px; cursor: pointer; }
         button:hover { background: #f0f0f0; }
         .danger-btn, .delete-btn, .modal-btn.danger { background: #fff; color: #ff4444; border-color: #ff4444; }
@@ -51,7 +51,7 @@
         .account-box { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; }
         .account-box .divider { border-top: 1px solid #eee; margin: 15px 0; }
         .account-box p { margin-bottom: 5px; }
-        .account-box input { margin-bottom: 10px; }
+        .account-box input, .account-box textarea { margin-bottom: 10px; }
         .account-box button { margin-top: 5px; }
         .cup-info { font-size: 16px; line-height: 1.8; }
         .player-stats { display: flex; flex-direction: column; gap: 15px; }
@@ -91,10 +91,13 @@
         .champion-popup { position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%); background: #fff; border: 2px solid gold; padding: 20px 30px; box-shadow: 0 0 20px rgba(255,215,0,0.8); z-index: 2000; text-align: center; }
         .champion-popup p { color: gold; font-size: 24px; font-weight: bold; text-shadow: 0 0 5px gold; }
         .champion-popup button { margin-top: 15px; background: #fff; color: #000; border: 1px solid gold; padding: 5px 20px; cursor: pointer; }
-        /* 新闻垂直滚动区域 */
-        .news-scroll-container { border: 1px solid #000; height: 120px; overflow: hidden; margin-bottom: 15px; background: #f9f9f9; }
+        /* 新闻滚动区 */
+        .news-scroll-container { border: 1px solid #000; height: 150px; overflow-y: auto; margin-bottom: 15px; background: #f9f9f9; }
         .news-scroll-list { list-style: none; padding: 0; margin: 0; }
-        .news-scroll-list li { padding: 8px 12px; border-bottom: 1px dashed #ccc; font-size: 14px; }
+        .news-scroll-list li { padding: 8px 12px; border-bottom: 1px dashed #ccc; font-size: 14px; white-space: pre-wrap; }
+        /* 新闻发布表单 */
+        .news-form { margin-bottom: 15px; }
+        .news-form textarea { height: 60px; }
         @media (max-width: 600px) {
             body { padding: 10px; }
             .container { padding: 15px; }
@@ -147,6 +150,14 @@
                     </ul>
                 </div>
 
+                <!-- 管理员新闻发布表单（移到首页） -->
+                <div id="adminNewsSection" style="display: none;" class="news-form">
+                    <div class="section-title">发布新闻</div>
+                    <input type="text" id="newsTitleInput" placeholder="新闻标题">
+                    <textarea id="newsContentInput" placeholder="新闻内容（支持换行）"></textarea>
+                    <button onclick="addNews()">发布</button>
+                </div>
+
                 <div class="pdf-menu">
                     <button onclick="switchPage('cupRules')">查看本赛季杯赛规则</button>
                     <button onclick="switchPage('eventRules')">查看积分兑换规则</button>
@@ -183,16 +194,6 @@
                     <button onclick="changeAccountAndName()">确认修改</button>
                     <div class="divider"></div>
                     <button onclick="openSwitchAccountModal()">切换账号</button>
-                </div>
-
-                <!-- 管理员添加新闻表单 -->
-                <div id="adminNewsSection" style="display: none;">
-                    <div class="section-title">添加新闻</div>
-                    <div class="account-box">
-                        <input type="text" id="newsTitleInput" placeholder="新闻标题">
-                        <input type="text" id="newsContentInput" placeholder="新闻内容">
-                        <button onclick="addNews()">发布新闻</button>
-                    </div>
                 </div>
 
                 <div class="section-title">账号安全</div>
@@ -337,7 +338,6 @@
             });
         });
 
-        // 登录函数（使用密码后4位）
         async function loginUser() {
             var account = document.getElementById('accountInput').value.trim();
             var last4 = document.getElementById('passwordLast4Input').value.trim();
@@ -428,10 +428,9 @@
                     list.innerHTML = '';
                     data.forEach(news => {
                         var li = document.createElement('li');
-                        li.textContent = news.title + '：' + news.content;
+                        li.textContent = news.title + '：\n' + news.content;
                         list.appendChild(li);
                     });
-                    // 启动垂直滚动
                     startNewsScroll();
                 } else {
                     list.innerHTML = '<li>暂无新闻</li>';
@@ -445,7 +444,7 @@
         function startNewsScroll() {
             var container = document.getElementById('newsScrollContainer');
             var list = document.getElementById('newsScrollList');
-            // 简单的垂直滚动：每3秒向上移动一条，循环
+            // 每3秒向上滚动一条
             setInterval(function() {
                 if (list.children.length > 1) {
                     var first = list.children[0];
@@ -821,8 +820,18 @@
                 if (isAdminUser) {
                     var data = await apiFetch('/rest/v1/rpc/get_player_stats');
                     if (Array.isArray(data) && data.length > 0) {
+                        // 将名字为“良乡上行两道通过”的球员强制改为“盛思源”并置顶
+                        data.sort(function(a, b) {
+                            var aIsSsy = (a.name === '良乡上行两道通过' || a.name === '盛思源');
+                            var bIsSsy = (b.name === '良乡上行两道通过' || b.name === '盛思源');
+                            if (aIsSsy && !bIsSsy) return -1;
+                            if (!aIsSsy && bIsSsy) return 1;
+                            return 0;
+                        });
                         var html = '<div class="player-stats">';
                         data.forEach(function(stat) {
+                            var name = stat.name;
+                            if (name === '良乡上行两道通过') name = '盛思源';
                             var champLabel = stat.champion >= 3 ? 'champion-label gold' : '';
                             var champNum = stat.champion >= 3 ? 'champion-number red' : '';
                             var runnerLabel = stat.runner_up >= 3 ? 'runner-label silver' : '';
@@ -833,7 +842,7 @@
                             var bg = stat.best_goal > 2 ? 'award-gold' : '';
 
                             html += '<div class="player-card">' +
-                                '<div class="player-name">' + stat.name + '</div>' +
+                                '<div class="player-name">' + name + '</div>' +
                                 '<div class="row-champion-runner">' +
                                     '<div class="stat-item"><div class="stat-number ' + champNum + '">' + stat.champion + '</div><div class="stat-label ' + champLabel + '">冠军</div></div>' +
                                     '<div class="stat-item"><div class="stat-number ' + runnerNum + '">' + stat.runner_up + '</div><div class="stat-label ' + runnerLabel + '">亚军</div></div>' +
@@ -857,6 +866,8 @@
                     var userData = await apiFetch('/rest/v1/player_stats?select=*&user_id=eq.' + currentUser.id);
                     if (Array.isArray(userData) && userData.length > 0) {
                         var stat = userData[0];
+                        var name = currentUser.name;
+                        if (name === '良乡上行两道通过') name = '盛思源';
                         var champLabel = stat.champion >= 3 ? 'champion-label gold' : '';
                         var champNum = stat.champion >= 3 ? 'champion-number red' : '';
                         var runnerLabel = stat.runner_up >= 3 ? 'runner-label silver' : '';
@@ -867,7 +878,7 @@
                         var bg = stat.best_goal > 2 ? 'award-gold' : '';
 
                         container.innerHTML = '<div class="player-stats"><div class="player-card">' +
-                            '<div class="player-name">' + currentUser.name + '</div>' +
+                            '<div class="player-name">' + name + '</div>' +
                             '<div class="row-champion-runner">' +
                                 '<div class="stat-item"><div class="stat-number ' + champNum + '">' + stat.champion + '</div><div class="stat-label ' + champLabel + '">冠军</div></div>' +
                                 '<div class="stat-item"><div class="stat-number ' + runnerNum + '">' + stat.runner_up + '</div><div class="stat-label ' + runnerLabel + '">亚军</div></div>' +
