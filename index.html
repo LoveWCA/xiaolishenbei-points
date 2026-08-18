@@ -94,7 +94,7 @@
         /* 新闻滚动区 */
         .news-scroll-container { border: 1px solid #000; height: 150px; overflow-y: auto; margin-bottom: 15px; background: #f9f9f9; }
         .news-scroll-list { list-style: none; padding: 0; margin: 0; }
-        .news-scroll-list li { padding: 8px 12px; border-bottom: 1px dashed #ccc; font-size: 14px; white-space: pre-wrap; }
+        .news-scroll-list li { padding: 8px 12px; border-bottom: 1px dashed #ccc; font-size: 14px; white-space: pre-wrap; } /* 保留换行 */
         /* 新闻发布表单 */
         .news-form { margin-bottom: 15px; }
         .news-form textarea { height: 60px; }
@@ -143,19 +143,19 @@
 
             <!-- 首页 -->
             <div id="page-home" class="page">
-                <!-- 新闻垂直滚动区 -->
-                <div class="news-scroll-container" id="newsScrollContainer">
-                    <ul class="news-scroll-list" id="newsScrollList">
-                        <li>加载新闻中...</li>
-                    </ul>
-                </div>
-
-                <!-- 管理员新闻发布表单（移到首页） -->
+                <!-- 管理员新闻发布表单（移到新闻滚动区上方） -->
                 <div id="adminNewsSection" style="display: none;" class="news-form">
                     <div class="section-title">发布新闻</div>
                     <input type="text" id="newsTitleInput" placeholder="新闻标题">
                     <textarea id="newsContentInput" placeholder="新闻内容（支持换行）"></textarea>
                     <button onclick="addNews()">发布</button>
+                </div>
+
+                <!-- 新闻垂直滚动区 -->
+                <div class="news-scroll-container" id="newsScrollContainer">
+                    <ul class="news-scroll-list" id="newsScrollList">
+                        <li>加载新闻中...</li>
+                    </ul>
                 </div>
 
                 <div class="pdf-menu">
@@ -279,6 +279,14 @@
         <button onclick="closeChampionPopup()">知道了</button>
     </div>
 
+    <!-- 通用提醒弹窗（用于积分失效提醒） -->
+    <div id="alertModal" class="modal-overlay hidden">
+        <div class="modal">
+            <p id="alertText" style="font-size: 16px; margin-bottom: 15px;"></p>
+            <button onclick="closeAlertModal()">知道了</button>
+        </div>
+    </div>
+
     <script>
         var SUPABASE_URL = 'https://hjktfecloctfpaoohzax.supabase.co';
         var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqa3RmZWNsb2N0ZnBhb29oemF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODQ5MzksImV4cCI6MjEwMjQ2MDkzOX0.Kd94mBz7-2EX9Xu3HZUKawIgUWCrVbFsH7rXFyz7WUg';
@@ -349,6 +357,8 @@
                 });
                 if (data && data.success) {
                     currentUser = { id: data.user_id, name: data.name, points: data.points, account: account };
+                    // 检查积分失效和提醒
+                    await checkPointsExpiry();
                     showMainSection();
                     checkChampionPopup();
                 } else {
@@ -358,6 +368,45 @@
                 console.error('登录失败:', e);
                 alert('登录失败，请检查网络或配置');
             }
+        }
+
+        async function checkPointsExpiry() {
+            try {
+                // 获取注册时间
+                var userData = await apiFetch('/rest/v1/users?select=created_at&id=eq.' + currentUser.id);
+                if (Array.isArray(userData) && userData.length > 0) {
+                    var createdAt = new Date(userData[0].created_at);
+                    var now = new Date();
+                    var daysDiff = Math.floor((now - createdAt) / (1000 * 60 * 60 * 24));
+
+                    if (daysDiff > 365) {
+                        // 超过365天，清零积分
+                        var expireRes = await apiFetch('/rest/v1/rpc/expire_points', {
+                            method: 'POST',
+                            body: JSON.stringify({ p_user_id: currentUser.id })
+                        });
+                        if (expireRes && expireRes.success) {
+                            currentUser.points = 0;
+                            showAlert('你的积分已超过365天，已自动清零。');
+                        }
+                    } else if (daysDiff === 300) {
+                        showAlert('你的积分将在65天后失效，请尽快使用。');
+                    } else if (daysDiff === 200) {
+                        showAlert('你的积分将在165天后失效，请注意。');
+                    }
+                }
+            } catch (e) {
+                console.error('检查积分有效期失败:', e);
+            }
+        }
+
+        function showAlert(text) {
+            document.getElementById('alertText').textContent = text;
+            document.getElementById('alertModal').classList.remove('hidden');
+        }
+
+        function closeAlertModal() {
+            document.getElementById('alertModal').classList.add('hidden');
         }
 
         function showMainSection() {
@@ -444,7 +493,6 @@
         function startNewsScroll() {
             var container = document.getElementById('newsScrollContainer');
             var list = document.getElementById('newsScrollList');
-            // 每3秒向上滚动一条
             setInterval(function() {
                 if (list.children.length > 1) {
                     var first = list.children[0];
