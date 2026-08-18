@@ -88,6 +88,10 @@
         .modal button { background: #fff; color: #000; border: 1px solid #000; padding: 8px 16px; cursor: pointer; margin-right: 10px; }
         .modal button.danger { background: #fff; color: #ff4444; border-color: #ff4444; }
         .modal button.danger:hover { background: #ff4444; color: #fff; }
+        /* 冠军弹窗样式 */
+        .champion-popup { position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%); background: #fff; border: 2px solid gold; padding: 20px 30px; box-shadow: 0 0 20px rgba(255,215,0,0.8); z-index: 2000; text-align: center; }
+        .champion-popup p { color: gold; font-size: 24px; font-weight: bold; text-shadow: 0 0 5px gold; }
+        .champion-popup button { margin-top: 15px; background: #fff; color: #000; border: 1px solid gold; padding: 5px 20px; cursor: pointer; }
         @media (max-width: 600px) {
             body { padding: 10px; }
             .container { padding: 15px; }
@@ -248,6 +252,12 @@
         </div>
     </div>
 
+    <!-- 冠军弹窗 -->
+    <div id="championPopup" class="champion-popup hidden">
+        <p>你在上届杯赛获得冠军！</p>
+        <button onclick="closeChampionPopup()">知道了</button>
+    </div>
+
     <script>
         var SUPABASE_URL = 'https://hjktfecloctfpaoohzax.supabase.co';
         var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqa3RmZWNsb2N0ZnBhb29oemF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODQ5MzksImV4cCI6MjEwMjQ2MDkzOX0.Kd94mBz7-2EX9Xu3HZUKawIgUWCrVbFsH7rXFyz7WUg';
@@ -329,6 +339,7 @@
                     currentUser = { id: data.user_id, name: data.name, points: data.points, account: account };
                     localStorage.setItem('currentUser', JSON.stringify(currentUser));
                     showMainSection();
+                    checkChampionPopup(); // 检查冠军弹窗
                 } else {
                     alert(data.msg || '账号或密码错误');
                 }
@@ -375,6 +386,28 @@
             } else {
                 pointsElement.classList.remove('gold-flash');
             }
+        }
+
+        // 冠军弹窗检测
+        async function checkChampionPopup() {
+            try {
+                // 查询当前用户的战绩
+                var data = await apiFetch('/rest/v1/player_stats?select=champion&user_id=eq.' + currentUser.id);
+                if (Array.isArray(data) && data.length > 0 && data[0].champion > 0) {
+                    // 防止重复弹窗，使用 localStorage 标记
+                    var popupKey = 'champion_popup_' + currentUser.id;
+                    if (!localStorage.getItem(popupKey)) {
+                        document.getElementById('championPopup').classList.remove('hidden');
+                        localStorage.setItem(popupKey, 'shown');
+                    }
+                }
+            } catch (e) {
+                console.error('检查冠军弹窗失败:', e);
+            }
+        }
+
+        function closeChampionPopup() {
+            document.getElementById('championPopup').classList.add('hidden');
         }
 
         async function changeAccountAndName() {
@@ -802,6 +835,7 @@
                 try {
                     currentUser = JSON.parse(saved);
                     showMainSection();
+                    checkChampionPopup();
                 } catch (e) {
                     localStorage.removeItem('currentUser');
                 }
