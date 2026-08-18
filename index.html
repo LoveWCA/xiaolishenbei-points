@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>“小力神杯”足球赛积分兑换系统配套网站</title>
+    <title>“小力神杯”足球赛积分兑换系统</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
         body { background: #f5f5f5; padding: 20px; max-width: 800px; margin: 0 auto; }
@@ -91,10 +91,12 @@
         .champion-popup { position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%); background: #fff; border: 2px solid gold; padding: 20px 30px; box-shadow: 0 0 20px rgba(255,215,0,0.8); z-index: 2000; text-align: center; }
         .champion-popup p { color: gold; font-size: 24px; font-weight: bold; text-shadow: 0 0 5px gold; }
         .champion-popup button { margin-top: 15px; background: #fff; color: #000; border: 1px solid gold; padding: 5px 20px; cursor: pointer; }
+        /* 积分提醒条（非模态） */
+        .expiry-notice { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; margin-top: 10px; color: #856404; font-size: 14px; text-align: center; }
         /* 新闻滚动区 */
         .news-scroll-container { border: 1px solid #000; height: 150px; overflow-y: auto; margin-bottom: 15px; background: #f9f9f9; }
         .news-scroll-list { list-style: none; padding: 0; margin: 0; }
-        .news-scroll-list li { padding: 8px 12px; border-bottom: 1px dashed #ccc; font-size: 14px; white-space: pre-wrap; } /* 保留换行 */
+        .news-scroll-list li { padding: 8px 12px; border-bottom: 1px dashed #ccc; font-size: 14px; white-space: pre-wrap; }
         /* 新闻发布表单 */
         .news-form { margin-bottom: 15px; }
         .news-form textarea { height: 60px; }
@@ -166,6 +168,8 @@
                 <div class="points-card">
                     <div class="points-label">我的积分</div>
                     <div class="points-value" id="pointsDisplay">0</div>
+                    <!-- 积分提醒条（默认隐藏） -->
+                    <div id="expiryNotice" class="expiry-notice hidden"></div>
                 </div>
 
                 <div class="section-title">可兑换奖品</div>
@@ -279,14 +283,6 @@
         <button onclick="closeChampionPopup()">知道了</button>
     </div>
 
-    <!-- 通用提醒弹窗（用于积分失效提醒） -->
-    <div id="alertModal" class="modal-overlay hidden">
-        <div class="modal">
-            <p id="alertText" style="font-size: 16px; margin-bottom: 15px;"></p>
-            <button onclick="closeAlertModal()">知道了</button>
-        </div>
-    </div>
-
     <script>
         var SUPABASE_URL = 'https://hjktfecloctfpaoohzax.supabase.co';
         var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqa3RmZWNsb2N0ZnBhb29oemF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODQ5MzksImV4cCI6MjEwMjQ2MDkzOX0.Kd94mBz7-2EX9Xu3HZUKawIgUWCrVbFsH7rXFyz7WUg';
@@ -357,7 +353,6 @@
                 });
                 if (data && data.success) {
                     currentUser = { id: data.user_id, name: data.name, points: data.points, account: account };
-                    // 检查积分失效和提醒
                     await checkPointsExpiry();
                     showMainSection();
                     checkChampionPopup();
@@ -372,41 +367,34 @@
 
         async function checkPointsExpiry() {
             try {
-                // 获取注册时间
                 var userData = await apiFetch('/rest/v1/users?select=created_at&id=eq.' + currentUser.id);
                 if (Array.isArray(userData) && userData.length > 0) {
                     var createdAt = new Date(userData[0].created_at);
                     var now = new Date();
                     var daysDiff = Math.floor((now - createdAt) / (1000 * 60 * 60 * 24));
+                    var notice = document.getElementById('expiryNotice');
 
                     if (daysDiff > 365) {
-                        // 超过365天，清零积分
                         var expireRes = await apiFetch('/rest/v1/rpc/expire_points', {
                             method: 'POST',
                             body: JSON.stringify({ p_user_id: currentUser.id })
                         });
                         if (expireRes && expireRes.success) {
                             currentUser.points = 0;
-                            showAlert('你的积分已超过365天，已自动清零。');
+                            notice.textContent = '你的积分已超过365天，已自动清零。';
+                            notice.classList.remove('hidden');
                         }
-                    } else if (daysDiff === 300) {
-                        showAlert('你的积分将在65天后失效，请尽快使用。');
-                    } else if (daysDiff === 200) {
-                        showAlert('你的积分将在165天后失效，请注意。');
+                    } else if (daysDiff >= 300) {
+                        notice.textContent = '你的积分将在' + (365 - daysDiff) + '天后失效，请尽快使用。';
+                        notice.classList.remove('hidden');
+                    } else if (daysDiff >= 200) {
+                        notice.textContent = '你的积分将在' + (365 - daysDiff) + '天后失效，请注意。';
+                        notice.classList.remove('hidden');
                     }
                 }
             } catch (e) {
                 console.error('检查积分有效期失败:', e);
             }
-        }
-
-        function showAlert(text) {
-            document.getElementById('alertText').textContent = text;
-            document.getElementById('alertModal').classList.remove('hidden');
-        }
-
-        function closeAlertModal() {
-            document.getElementById('alertModal').classList.add('hidden');
         }
 
         function showMainSection() {
@@ -468,7 +456,6 @@
             document.getElementById('championPopup').classList.add('hidden');
         }
 
-        // 加载新闻并垂直滚动
         async function loadNews() {
             try {
                 var data = await apiFetch('/rest/v1/news?select=title,content&order=created_at.desc');
@@ -491,7 +478,6 @@
         }
 
         function startNewsScroll() {
-            var container = document.getElementById('newsScrollContainer');
             var list = document.getElementById('newsScrollList');
             setInterval(function() {
                 if (list.children.length > 1) {
@@ -502,7 +488,6 @@
             }, 3000);
         }
 
-        // 添加新闻（管理员）
         async function addNews() {
             var title = document.getElementById('newsTitleInput').value.trim();
             var content = document.getElementById('newsContentInput').value.trim();
@@ -868,7 +853,6 @@
                 if (isAdminUser) {
                     var data = await apiFetch('/rest/v1/rpc/get_player_stats');
                     if (Array.isArray(data) && data.length > 0) {
-                        // 将名字为“良乡上行两道通过”的球员强制改为“盛思源”并置顶
                         data.sort(function(a, b) {
                             var aIsSsy = (a.name === '良乡上行两道通过' || a.name === '盛思源');
                             var bIsSsy = (b.name === '良乡上行两道通过' || b.name === '盛思源');
