@@ -10,11 +10,11 @@
         .container { background: #fff; border: 1px solid #000; padding: 20px; }
         .login-box { margin-bottom: 20px; }
         .login-box h3 { margin-bottom: 10px; font-weight: 600; color: #000; }
-        .login-box input, .account-box input, .modal input { width: 100%; padding: 10px 0; margin-bottom: 15px; border: none; border-bottom: 1px solid #000; background: transparent; color: #000; font-size: 16px; outline: none; }
+        input, .modal input { width: 100%; padding: 10px 0; margin-bottom: 15px; border: none; border-bottom: 1px solid #000; background: transparent; color: #000; font-size: 16px; outline: none; }
         button { background: #fff; color: #000; border: 1px solid #000; padding: 8px 16px; font-size: 14px; cursor: pointer; }
         button:hover { background: #f0f0f0; }
-        .btn-danger, .danger-btn, .delete-btn, .modal-btn.danger { background: #fff; color: #ff4444; border-color: #ff4444; }
-        .btn-danger:hover, .danger-btn:hover, .delete-btn:hover, .modal-btn.danger:hover { background: #ff4444; color: #fff; }
+        .danger-btn, .delete-btn, .modal-btn.danger { background: #fff; color: #ff4444; border-color: #ff4444; }
+        .danger-btn:hover, .delete-btn:hover, .modal-btn.danger:hover { background: #ff4444; color: #fff; }
         .login-box button, .account-box button { width: 100%; padding: 10px; font-size: 16px; }
         .qty-btn { width: 30px; height: 30px; padding: 0; font-size: 18px; line-height: 1; }
         .hidden { display: none; }
@@ -387,28 +387,327 @@
             document.getElementById('championPopup').classList.add('hidden');
         }
 
-        async function changeAccountAndName() { /* 略（保持不变） */ }
-        function openPasswordModal() { /* ... */ }
-        function closeModal(modalId) { /* ... */ }
-        async function submitPasswordChange() { /* ... */ }
-        function openDeleteAccountModal() { /* ... */ }
-        async function submitDeleteAccount() { /* ... */ }
-        function openSwitchAccountModal() { /* ... */ }
-        async function submitSwitchAccount() { /* ... */ }
+        async function changeAccountAndName() {
+            var newAccount = document.getElementById('newAccountInput').value.trim();
+            var newName = document.getElementById('newNameInput').value.trim();
+            if (!newAccount && !newName) { alert('请输入新登录名或新用户名'); return; }
 
-        async function loadUserUsage() { /* ... */ }
-        async function loadPrizes() { /* ... */ }
-        function changeQty(prizeId, delta) { /* ... */ }
-        async function exchangePrize(prizeId) { /* ... */ }
-        async function loadRecords() { /* ... */ }
-        async function deleteExchange(exchangeId) { /* ... */ }
-        async function loadNotices() { /* ... */ }
+            if (newAccount) {
+                try {
+                    var accountData = await apiFetch('/rest/v1/rpc/update_account', {
+                        method: 'POST',
+                        body: JSON.stringify({ p_user_id: currentUser.id, p_new_account: newAccount })
+                    });
+                    if (accountData && accountData.success) {
+                        currentUser.account = accountData.new_account || newAccount;
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        document.getElementById('newAccountInput').value = '';
+                    } else {
+                        alert(accountData.msg || '修改登录名失败');
+                        return;
+                    }
+                } catch (e) {
+                    console.error('修改登录名失败:', e);
+                    alert('修改登录名失败，请重试');
+                    return;
+                }
+            }
+
+            if (newName) {
+                try {
+                    var nameData = await apiFetch('/rest/v1/rpc/update_name', {
+                        method: 'POST',
+                        body: JSON.stringify({ p_user_id: currentUser.id, p_new_name: newName })
+                    });
+                    if (nameData && nameData.success) {
+                        currentUser.name = nameData.new_name || newName;
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        document.getElementById('greetingText').textContent = '你好，' + currentUser.name;
+                        document.getElementById('newNameInput').value = '';
+                    } else {
+                        alert(nameData.msg || '修改用户名失败');
+                        return;
+                    }
+                } catch (e) {
+                    console.error('修改用户名失败:', e);
+                    alert('修改用户名失败，请重试');
+                    return;
+                }
+            }
+
+            alert('账号信息修改成功');
+        }
+
+        function openPasswordModal() {
+            document.getElementById('oldPasswordInput').value = '';
+            document.getElementById('newPasswordInput').value = '';
+            document.getElementById('confirmPasswordInput').value = '';
+            document.getElementById('passwordModal').style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            var modal = document.getElementById(modalId);
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+
+        async function submitPasswordChange() {
+            var oldPassword = document.getElementById('oldPasswordInput').value.trim();
+            var newPassword = document.getElementById('newPasswordInput').value.trim();
+            var confirmPassword = document.getElementById('confirmPasswordInput').value.trim();
+            if (!oldPassword || !newPassword || !confirmPassword) { alert('请填写所有密码字段'); return; }
+            if (newPassword !== confirmPassword) { alert('两次输入的新密码不一致'); return; }
+
+            try {
+                var data = await apiFetch('/rest/v1/rpc/update_password', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        p_user_id: currentUser.id,
+                        p_old_password: oldPassword,
+                        p_new_password: newPassword
+                    })
+                });
+                if (data && data.success) {
+                    alert('密码修改成功，请重新登录');
+                    closeModal('passwordModal');
+                    logoutUser();
+                } else {
+                    alert(data.msg || '修改失败');
+                }
+            } catch (e) {
+                console.error('修改密码失败:', e);
+                alert('修改失败，请重试');
+            }
+        }
+
+        function openDeleteAccountModal() {
+            document.getElementById('deletePasswordInput').value = '';
+            document.getElementById('deleteWarning').classList.remove('show');
+            document.getElementById('deleteAccountModal').style.display = 'flex';
+        }
+
+        document.getElementById('deletePasswordInput').addEventListener('input', function() {
+            if (this.value.trim().length > 0) {
+                document.getElementById('deleteWarning').classList.add('show');
+            } else {
+                document.getElementById('deleteWarning').classList.remove('show');
+            }
+        });
+
+        async function submitDeleteAccount() {
+            var password = document.getElementById('deletePasswordInput').value.trim();
+            if (!password) { alert('请输入密码'); return; }
+
+            try {
+                var data = await apiFetch('/rest/v1/rpc/delete_user', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_user_id: currentUser.id, p_password: password })
+                });
+                if (data && data.success) {
+                    alert('账号已注销');
+                    closeModal('deleteAccountModal');
+                    logoutUser();
+                } else {
+                    alert(data.msg || '密码错误');
+                }
+            } catch (e) {
+                console.error('注销失败:', e);
+                alert('注销失败，请重试');
+            }
+        }
+
+        function openSwitchAccountModal() {
+            document.getElementById('switchAccountInput').value = '';
+            document.getElementById('switchAccountModal').style.display = 'flex';
+        }
+
+        async function submitSwitchAccount() {
+            var newAccount = document.getElementById('switchAccountInput').value.trim();
+            if (!newAccount) { alert('请输入新登录名'); return; }
+
+            try {
+                var data = await apiFetch('/rest/v1/rpc/update_account', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_user_id: currentUser.id, p_new_account: newAccount })
+                });
+                if (data && data.success) {
+                    currentUser.account = data.new_account || newAccount;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    document.getElementById('switchAccountInput').value = '';
+                    closeModal('switchAccountModal');
+                    alert('切换账号成功，下次登录请使用新账号');
+                } else {
+                    alert(data.msg || '切换失败，已保留原账号');
+                }
+            } catch (e) {
+                console.error('切换账号失败:', e);
+                alert('切换失败，已保留原账号');
+            }
+        }
+
+        async function loadUserUsage() {
+            if (!currentUser) return;
+            try {
+                var data = await apiFetch('/rest/v1/exchanges?user_id=eq.' + currentUser.id + '&select=prize_id,quantity,created_at');
+                userUsage = {};
+                data.forEach(function(record) {
+                    var prizeId = record.prize_id;
+                    userUsage[prizeId] = (userUsage[prizeId] || 0) + record.quantity;
+                });
+            } catch (e) {
+                console.error('加载用户兑换情况失败:', e);
+            }
+        }
+
+        async function loadPrizes() {
+            var container = document.getElementById('prizeList');
+            container.innerHTML = '<div class="loading">加载中...</div>';
+            try {
+                await loadUserUsage();
+                var data = await apiFetch('/rest/v1/prizes?select=*&order=cost.asc');
+                if (Array.isArray(data) && data.length > 0) {
+                    container.innerHTML = data.map(function(p) {
+                        var purchaseLimit = p.purchase_limit || 0;
+                        var alreadyUsed = userUsage[p.id] || 0;
+                        var remaining = purchaseLimit > 0 ? Math.max(purchaseLimit - alreadyUsed, 0) : 999999;
+                        var canAdd = remaining > 0 && p.stock > 0;
+                        var isLocked = purchaseLimit > 0 && remaining <= 0;
+                        var stockText = purchaseLimit > 0 ? '限购 ' + purchaseLimit + ' 次，已兑 ' + alreadyUsed + ' 次' : '剩余 ' + p.stock + ' 件';
+                        var rulesText = purchaseLimit > 0 ? '兑换条例：' + (p.limit_period_days > 0 ? p.limit_period_days + '天内限购' + purchaseLimit + '次' : '永久限购' + purchaseLimit + '次') : '兑换条例：不限购';
+                        var extraRemark = '';
+                        if (p.name === '【申请】5天内已出现3次冠军、46净胜球，申领积分') {
+                            extraRemark = '<div style="color:#888; font-size:12px; margin-top:3px;">合理申请，请勿多加。</div>';
+                        }
+                        return '<div class="prize-item">' +
+                            '<div class="prize-info">' +
+                                '<div class="prize-name">' + p.name + '</div>' +
+                                '<div class="prize-cost">' + p.cost + ' 积分</div>' +
+                                '<div class="prize-stock">' + stockText + '</div>' +
+                                '<div class="prize-rules">' + rulesText + '</div>' +
+                                extraRemark +
+                            '</div>' +
+                            '<div class="quantity-selector">' +
+                                '<button class="qty-btn" onclick="changeQty(\'' + p.id + '\', -1)" ' + (!canAdd ? 'disabled' : '') + '>−</button>' +
+                                '<span class="qty-num" id="qty-' + p.id + '">' + (selectedQty[p.id] || 0) + '</span>' +
+                                '<button class="qty-btn" onclick="changeQty(\'' + p.id + '\', 1)" ' + (!canAdd ? 'disabled' : '') + '>+</button>' +
+                            '</div>' +
+                            '<button class="exchange-btn" onclick="exchangePrize(\'' + p.id + '\')" ' + (!canAdd ? 'disabled' : '') + '>' + (isLocked ? '已达上限' : '兑换') + '</button>' +
+                            '</div>';
+                    }).join('');
+                } else {
+                    container.innerHTML = '<div class="empty">暂无奖品</div>';
+                }
+            } catch (e) {
+                container.innerHTML = '<div class="empty">加载奖品失败</div>';
+            }
+        }
+
+        function changeQty(prizeId, delta) {
+            var current = selectedQty[prizeId] || 0;
+            var newQty = current + delta;
+            if (newQty < 0) newQty = 0;
+            selectedQty[prizeId] = newQty;
+            document.getElementById('qty-' + prizeId).textContent = newQty;
+        }
+
+        async function exchangePrize(prizeId) {
+            if (!currentUser) return;
+            var quantity = selectedQty[prizeId] || 0;
+            if (quantity < 1) { alert('请选择兑换数量'); return; }
+            if (!confirm('确定兑换该奖品吗？数量：' + quantity)) return;
+            try {
+                var data = await apiFetch('/rest/v1/rpc/exchange_prize', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId, p_quantity: quantity })
+                });
+                if (data && data.success) {
+                    alert('兑换成功！');
+                    currentUser.points -= data.total_cost;
+                    document.getElementById('pointsDisplay').textContent = currentUser.points;
+                    updatePointsDisplay();
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    selectedQty[prizeId] = 0;
+                    document.getElementById('qty-' + prizeId).textContent = '0';
+                    loadPrizes();
+                    loadRecords();
+                    if (isAdmin()) loadNotices();
+                } else {
+                    alert(data.msg || '兑换失败');
+                }
+            } catch (e) {
+                console.error('兑换失败:', e);
+                alert('兑换失败，请重试');
+            }
+        }
+
+        async function loadRecords() {
+            var container = document.getElementById('recordList');
+            if (!currentUser) return;
+            container.innerHTML = '<div class="loading">加载中...</div>';
+            try {
+                var data = await apiFetch('/rest/v1/exchanges?user_id=eq.' + currentUser.id + '&select=*&order=created_at.desc');
+                if (Array.isArray(data) && data.length > 0) {
+                    container.innerHTML = data.map(function(r) {
+                        return '<div class="record-item">' +
+                            '<div class="record-info">' +
+                                '<div class="record-name">' + r.prize_name + ' x' + r.quantity + '</div>' +
+                                '<div class="record-time">' + new Date(r.created_at).toLocaleString() + '</div>' +
+                            '</div>' +
+                            '<div class="record-right">' +
+                                '<div class="record-cost">-' + r.total_cost + ' 积分</div>' +
+                                '<span class="record-status">' + r.status + '</span>' +
+                                '<button class="delete-btn" onclick="deleteExchange(\'' + r.id + '\')">删除</button>' +
+                            '</div>' +
+                            '</div>';
+                    }).join('');
+                } else {
+                    container.innerHTML = '<div class="empty">暂无兑换记录</div>';
+                }
+            } catch (e) {
+                container.innerHTML = '<div class="empty">加载记录失败</div>';
+            }
+        }
+
+        async function deleteExchange(exchangeId) {
+            if (!currentUser) return;
+            try {
+                await apiFetch('/rest/v1/exchanges?id=eq.' + exchangeId, {
+                    method: 'DELETE'
+                });
+                loadRecords();
+                if (isAdmin()) loadNotices();
+                loadPrizes();
+            } catch (e) {
+                console.error('删除记录失败:', e);
+                alert('删除失败，请重试');
+            }
+        }
+
+        async function loadNotices() {
+            var container = document.getElementById('noticeBox');
+            if (!container) return;
+            container.innerHTML = '<div class="loading">加载中...</div>';
+            try {
+                var data = await apiFetch('/rest/v1/exchanges?select=*&order=created_at.desc&limit=20');
+                if (Array.isArray(data) && data.length > 0) {
+                    container.innerHTML = data.map(function(n) {
+                        return '<div class="notice-item">【' +
+                            new Date(n.created_at).toLocaleString() + '】' +
+                            n.prize_name + ' x' + n.quantity + '，消耗' + n.total_cost + '积分</div>';
+                    }).join('');
+                } else {
+                    container.innerHTML = '<div class="empty">暂无兑换请求</div>';
+                }
+            } catch (e) {
+                container.innerHTML = '<div class="empty">加载通知失败</div>';
+            }
+        }
 
         async function loadCupInfo() {
             var container = document.getElementById('cupInfoContainer');
             var debug = document.getElementById('debugInfo');
             container.innerHTML = '<div class="loading">加载中...</div>';
-            debug.textContent = '正在加载...';
+            debug.textContent = '';
 
             var isAdminUser = isAdmin();
             var adminNotice = document.getElementById('adminNotice');
@@ -419,25 +718,47 @@
             }
 
             try {
-                var queryPath = '/rest/v1/player_stats?select=*';
-                if (!isAdminUser) {
-                    queryPath += '&user_id=eq.' + currentUser.id;
-                }
-                queryPath += '&order=created_at.asc';
-                debug.textContent = '查询路径: ' + queryPath;
+                if (isAdminUser) {
+                    var data = await apiFetch('/rest/v1/rpc/get_player_stats');
+                    debug.textContent = '管理员模式，调用 get_player_stats，返回条数: ' + (Array.isArray(data) ? data.length : '非数组');
+                    if (Array.isArray(data) && data.length > 0) {
+                        var html = '<div class="player-stats">';
+                        data.forEach(function(stat) {
+                            var champLabel = stat.champion >= 3 ? 'champion-label gold' : '';
+                            var champNum = stat.champion >= 3 ? 'champion-number red' : '';
+                            var runnerLabel = stat.runner_up >= 3 ? 'runner-label silver' : '';
+                            var runnerNum = stat.runner_up >= 3 ? 'runner-number yellow' : '';
+                            var thirdLabel = stat.third_place >= 3 ? 'third-label copper' : '';
+                            var gb = stat.golden_ball > 2 ? 'award-gold' : '';
+                            var gboot = stat.golden_boot > 2 ? 'award-gold' : '';
+                            var bg = stat.best_goal > 2 ? 'award-gold' : '';
 
-                var statsData = await apiFetch(queryPath);
-                debug.textContent += '\n返回条数: ' + (Array.isArray(statsData) ? statsData.length : '非数组');
-                if (Array.isArray(statsData) && statsData.length > 0) {
-                    // 获取姓名映射
-                    var ids = statsData.map(s => s.user_id).join(',');
-                    var usersData = await apiFetch('/rest/v1/users?select=id,name&id=in.(' + ids + ')');
-                    var nameMap = {};
-                    usersData.forEach(u => nameMap[u.id] = u.name);
-
-                    var html = '<div class="player-stats">';
-                    statsData.forEach(stat => {
-                        var name = nameMap[stat.user_id] || '未知';
+                            html += '<div class="player-card">' +
+                                '<div class="player-name">' + stat.name + '</div>' +
+                                '<div class="row-champion-runner">' +
+                                    '<div class="stat-item"><div class="stat-number ' + champNum + '">' + stat.champion + '</div><div class="stat-label ' + champLabel + '">冠军</div></div>' +
+                                    '<div class="stat-item"><div class="stat-number ' + runnerNum + '">' + stat.runner_up + '</div><div class="stat-label ' + runnerLabel + '">亚军</div></div>' +
+                                '</div>' +
+                                '<div class="row-third-golden-boot">' +
+                                    '<div class="stat-item"><div class="stat-number">' + stat.third_place + '</div><div class="stat-label ' + thirdLabel + '">季军</div></div>' +
+                                    '<div class="stat-item ' + gb + '"><div class="stat-number">' + stat.golden_ball + '</div><div class="stat-label">金球奖</div></div>' +
+                                    '<div class="stat-item ' + gboot + '"><div class="stat-number">' + stat.golden_boot + '</div><div class="stat-label">金靴奖</div></div>' +
+                                '</div>' +
+                                '<div class="row-best-goal">' +
+                                    '<div class="stat-item ' + bg + '"><div class="stat-number">' + stat.best_goal + '</div><div class="stat-label">最佳进球</div></div>' +
+                                '</div>' +
+                            '</div>';
+                        });
+                        html += '</div>';
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML = '<div class="empty">暂无数据</div>';
+                    }
+                } else {
+                    var userData = await apiFetch('/rest/v1/player_stats?select=*&user_id=eq.' + currentUser.id);
+                    debug.textContent = '普通队员模式，查询自己，返回条数: ' + (Array.isArray(userData) ? userData.length : '非数组');
+                    if (Array.isArray(userData) && userData.length > 0) {
+                        var stat = userData[0];
                         var champLabel = stat.champion >= 3 ? 'champion-label gold' : '';
                         var champNum = stat.champion >= 3 ? 'champion-number red' : '';
                         var runnerLabel = stat.runner_up >= 3 ? 'runner-label silver' : '';
@@ -447,26 +768,24 @@
                         var gboot = stat.golden_boot > 2 ? 'award-gold' : '';
                         var bg = stat.best_goal > 2 ? 'award-gold' : '';
 
-                        html += `<div class="player-card">
-                            <div class="player-name">${name}</div>
-                            <div class="row-champion-runner">
-                                <div class="stat-item"><div class="stat-number ${champNum}">${stat.champion}</div><div class="stat-label ${champLabel}">冠军</div></div>
-                                <div class="stat-item"><div class="stat-number ${runnerNum}">${stat.runner_up}</div><div class="stat-label ${runnerLabel}">亚军</div></div>
-                            </div>
-                            <div class="row-third-golden-boot">
-                                <div class="stat-item"><div class="stat-number">${stat.third_place}</div><div class="stat-label ${thirdLabel}">季军</div></div>
-                                <div class="stat-item ${gb}"><div class="stat-number">${stat.golden_ball}</div><div class="stat-label">金球奖</div></div>
-                                <div class="stat-item ${gboot}"><div class="stat-number">${stat.golden_boot}</div><div class="stat-label">金靴奖</div></div>
-                            </div>
-                            <div class="row-best-goal">
-                                <div class="stat-item ${bg}"><div class="stat-number">${stat.best_goal}</div><div class="stat-label">最佳进球</div></div>
-                            </div>
-                        </div>`;
-                    });
-                    html += '</div>';
-                    container.innerHTML = html;
-                } else {
-                    container.innerHTML = '<div class="empty">' + (isAdminUser ? '暂无数据' : '你还没有战绩记录') + '</div>';
+                        container.innerHTML = '<div class="player-stats"><div class="player-card">' +
+                            '<div class="player-name">' + currentUser.name + '</div>' +
+                            '<div class="row-champion-runner">' +
+                                '<div class="stat-item"><div class="stat-number ' + champNum + '">' + stat.champion + '</div><div class="stat-label ' + champLabel + '">冠军</div></div>' +
+                                '<div class="stat-item"><div class="stat-number ' + runnerNum + '">' + stat.runner_up + '</div><div class="stat-label ' + runnerLabel + '">亚军</div></div>' +
+                            '</div>' +
+                            '<div class="row-third-golden-boot">' +
+                                '<div class="stat-item"><div class="stat-number">' + stat.third_place + '</div><div class="stat-label ' + thirdLabel + '">季军</div></div>' +
+                                '<div class="stat-item ' + gb + '"><div class="stat-number">' + stat.golden_ball + '</div><div class="stat-label">金球奖</div></div>' +
+                                '<div class="stat-item ' + gboot + '"><div class="stat-number">' + stat.golden_boot + '</div><div class="stat-label">金靴奖</div></div>' +
+                            '</div>' +
+                            '<div class="row-best-goal">' +
+                                '<div class="stat-item ' + bg + '"><div class="stat-number">' + stat.best_goal + '</div><div class="stat-label">最佳进球</div></div>' +
+                            '</div>' +
+                        '</div></div>';
+                    } else {
+                        container.innerHTML = '<div class="empty">你还没有战绩记录</div>';
+                    }
                 }
             } catch (e) {
                 debug.textContent += '\n错误: ' + e.message;
