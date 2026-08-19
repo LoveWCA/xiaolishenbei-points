@@ -32,6 +32,7 @@
         .prize-cost, .record-cost { font-size: 14px; color: #555; margin-top: 5px; }
         .prize-stock, .record-time { font-size: 12px; color: #777; margin-top: 3px; }
         .prize-rules { font-size: 12px; color: #888; margin-top: 3px; }
+        .discount-badge { color: red; font-weight: bold; font-size: 14px; margin-top: 3px; }
         .record-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
         .record-status { display: inline-block; font-size: 12px; color: #000; margin-top: 5px; background: #fff; border: 1px solid #000; padding: 2px 8px; }
         .quantity-selector { display: flex; align-items: center; gap: 10px; margin-left: 10px; flex-shrink: 0; }
@@ -88,11 +89,10 @@
         .modal button { background: #fff; color: #000; border: 1px solid #000; padding: 8px 16px; cursor: pointer; margin-right: 10px; }
         .modal button.danger { background: #fff; color: #ff4444; border-color: #ff4444; }
         .modal button.danger:hover { background: #ff4444; color: #fff; }
-        .champion-popup { position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%); background: #fff; border: 2px solid gold; padding: 20px 30px; box-shadow: 0 0 20px rgba(255,215,0,0.8); z-index: 2000; text-align: center; }
-        .champion-popup p { color: gold; font-size: 24px; font-weight: bold; text-shadow: 0 0 5px gold; }
-        .champion-popup button { margin-top: 15px; background: #fff; color: #000; border: 1px solid gold; padding: 5px 20px; cursor: pointer; }
-        /* 积分提醒条（非模态） */
-        .expiry-notice { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; margin-top: 10px; color: #856404; font-size: 14px; text-align: center; }
+        /* 抽奖弹窗 */
+        .lottery-popup { position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%); background: #fff; border: 2px solid gold; padding: 20px; z-index: 2000; text-align: center; }
+        .lottery-popup p { font-size: 18px; margin-bottom: 10px; }
+        .lottery-popup button { margin: 0 10px; }
         /* 新闻滚动区 */
         .news-scroll-container { border: 1px solid #000; height: 150px; overflow-y: auto; margin-bottom: 15px; background: #f9f9f9; }
         .news-scroll-list { list-style: none; padding: 0; margin: 0; }
@@ -145,7 +145,7 @@
 
             <!-- 首页 -->
             <div id="page-home" class="page">
-                <!-- 管理员新闻发布表单（移到新闻滚动区上方） -->
+                <!-- 管理员新闻发布表单 -->
                 <div id="adminNewsSection" style="display: none;" class="news-form">
                     <div class="section-title">发布新闻</div>
                     <input type="text" id="newsTitleInput" placeholder="新闻标题">
@@ -168,8 +168,6 @@
                 <div class="points-card">
                     <div class="points-label">我的积分</div>
                     <div class="points-value" id="pointsDisplay">0</div>
-                    <!-- 积分提醒条（默认隐藏） -->
-                    <div id="expiryNotice" class="expiry-notice hidden"></div>
                 </div>
 
                 <div class="section-title">可兑换奖品</div>
@@ -277,10 +275,11 @@
         </div>
     </div>
 
-    <!-- 冠军弹窗 -->
-    <div id="championPopup" class="champion-popup hidden">
-        <p>你在上届杯赛获得冠军！</p>
-        <button onclick="closeChampionPopup()">知道了</button>
+    <!-- 抽奖弹窗 -->
+    <div id="lotteryPopup" class="lottery-popup hidden">
+        <p>恭喜你获得翻倍机会！</p>
+        <p id="lotteryResult" style="font-size: 24px; font-weight: bold; color: gold;">翻？倍</p>
+        <button onclick="closeLotteryPopup()">确定</button>
     </div>
 
     <script>
@@ -353,47 +352,13 @@
                 });
                 if (data && data.success) {
                     currentUser = { id: data.user_id, name: data.name, points: data.points, account: account };
-                    await checkPointsExpiry();
                     showMainSection();
-                    checkChampionPopup();
                 } else {
                     alert(data.msg || '账号或密码后4位错误');
                 }
             } catch (e) {
                 console.error('登录失败:', e);
                 alert('登录失败，请检查网络或配置');
-            }
-        }
-
-        async function checkPointsExpiry() {
-            try {
-                var userData = await apiFetch('/rest/v1/users?select=created_at&id=eq.' + currentUser.id);
-                if (Array.isArray(userData) && userData.length > 0) {
-                    var createdAt = new Date(userData[0].created_at);
-                    var now = new Date();
-                    var daysDiff = Math.floor((now - createdAt) / (1000 * 60 * 60 * 24));
-                    var notice = document.getElementById('expiryNotice');
-
-                    if (daysDiff > 365) {
-                        var expireRes = await apiFetch('/rest/v1/rpc/expire_points', {
-                            method: 'POST',
-                            body: JSON.stringify({ p_user_id: currentUser.id })
-                        });
-                        if (expireRes && expireRes.success) {
-                            currentUser.points = 0;
-                            notice.textContent = '你的积分已超过365天，已自动清零。';
-                            notice.classList.remove('hidden');
-                        }
-                    } else if (daysDiff >= 300) {
-                        notice.textContent = '你的积分将在' + (365 - daysDiff) + '天后失效，请尽快使用。';
-                        notice.classList.remove('hidden');
-                    } else if (daysDiff >= 200) {
-                        notice.textContent = '你的积分将在' + (365 - daysDiff) + '天后失效，请注意。';
-                        notice.classList.remove('hidden');
-                    }
-                }
-            } catch (e) {
-                console.error('检查积分有效期失败:', e);
             }
         }
 
@@ -435,25 +400,6 @@
             } else {
                 el.classList.remove('gold-flash');
             }
-        }
-
-        async function checkChampionPopup() {
-            try {
-                var data = await apiFetch('/rest/v1/player_stats?select=champion&user_id=eq.' + currentUser.id);
-                if (Array.isArray(data) && data.length > 0 && data[0].champion > 0) {
-                    var key = 'champion_popup_' + currentUser.id;
-                    if (!localStorage.getItem(key)) {
-                        document.getElementById('championPopup').classList.remove('hidden');
-                        localStorage.setItem(key, 'shown');
-                    }
-                }
-            } catch (e) {
-                console.error('冠军弹窗检查失败:', e);
-            }
-        }
-
-        function closeChampionPopup() {
-            document.getElementById('championPopup').classList.add('hidden');
         }
 
         async function loadNews() {
@@ -685,9 +631,18 @@
             container.innerHTML = '<div class="loading">加载中...</div>';
             try {
                 await loadUserUsage();
-                var data = await apiFetch('/rest/v1/prizes?select=*&order=cost.asc');
-                if (Array.isArray(data) && data.length > 0) {
-                    container.innerHTML = data.map(function(p) {
+                const [prizesData, discountsData] = await Promise.all([
+                    apiFetch('/rest/v1/prizes?select=*&order=cost.asc'),
+                    apiFetch('/rest/v1/discounts?select=prize_id,discount_label')
+                ]);
+
+                const discountMap = {};
+                if (Array.isArray(discountsData)) {
+                    discountsData.forEach(d => { discountMap[d.prize_id] = d.discount_label; });
+                }
+
+                if (Array.isArray(prizesData) && prizesData.length > 0) {
+                    container.innerHTML = prizesData.map(function(p) {
                         var purchaseLimit = p.purchase_limit || 0;
                         var alreadyUsed = userUsage[p.id] || 0;
                         var remaining = purchaseLimit > 0 ? Math.max(purchaseLimit - alreadyUsed, 0) : 999999;
@@ -695,17 +650,53 @@
                         var isLocked = purchaseLimit > 0 && remaining <= 0;
                         var stockText = purchaseLimit > 0 ? '限购 ' + purchaseLimit + ' 次，已兑 ' + alreadyUsed + ' 次' : '剩余 ' + p.stock + ' 件';
                         var rulesText = purchaseLimit > 0 ? '兑换条例：' + (p.limit_period_days > 0 ? p.limit_period_days + '天内限购' + purchaseLimit + '次' : '永久限购' + purchaseLimit + '次') : '兑换条例：不限购';
+
+                        var discountBadge = '';
+                        if (discountMap[p.id]) {
+                            discountBadge = '<div class="discount-badge">折扣：' + discountMap[p.id] + '</div>';
+                        }
+
                         var extraRemark = '';
                         if (p.name === '【申请】5天内已出现3次冠军、46净胜球，申领积分') {
                             extraRemark = '<div style="color:#888; font-size:12px; margin-top:3px;">合理申请，请勿多加。</div>';
                         }
+
+                        // 特殊商品：抽奖
+                        if (p.name === '【申请】超级加倍抽奖') {
+                            return '<div class="prize-item">' +
+                                '<div class="prize-info">' +
+                                    '<div class="prize-name">' + p.name + '</div>' +
+                                    '<div class="prize-cost">' + p.cost + ' 积分</div>' +
+                                    '<div class="prize-stock">' + stockText + '</div>' +
+                                    '<div class="prize-rules">' + rulesText + '</div>' +
+                                    discountBadge + extraRemark +
+                                '</div>' +
+                                '<button class="exchange-btn" onclick="startLottery(\'' + p.id + '\')" ' + (!canAdd ? 'disabled' : '') + '>' + (isLocked ? '已达上限' : '抽奖') + '</button>' +
+                                '</div>';
+                        }
+
+                        // 免费可乐（不可多选，只可兑换1）
+                        if (p.name === '【免费】可口可乐600mL1瓶') {
+                            return '<div class="prize-item">' +
+                                '<div class="prize-info">' +
+                                    '<div class="prize-name">' + p.name + '</div>' +
+                                    '<div class="prize-cost">免费</div>' +
+                                    '<div class="prize-stock">' + stockText + '</div>' +
+                                    '<div class="prize-rules">' + rulesText + '</div>' +
+                                    discountBadge + extraRemark +
+                                '</div>' +
+                                '<button class="exchange-btn" onclick="exchangePrize(\'' + p.id + '\')" ' + (!canAdd ? 'disabled' : '') + '>' + (isLocked ? '已达上限' : '兑换') + '</button>' +
+                                '</div>';
+                        }
+
+                        // 普通商品
                         return '<div class="prize-item">' +
                             '<div class="prize-info">' +
                                 '<div class="prize-name">' + p.name + '</div>' +
                                 '<div class="prize-cost">' + p.cost + ' 积分</div>' +
                                 '<div class="prize-stock">' + stockText + '</div>' +
                                 '<div class="prize-rules">' + rulesText + '</div>' +
-                                extraRemark +
+                                discountBadge + extraRemark +
                             '</div>' +
                             '<div class="quantity-selector">' +
                                 '<button class="qty-btn" onclick="changeQty(\'' + p.id + '\', -1)" ' + (!canAdd ? 'disabled' : '') + '>−</button>' +
@@ -719,6 +710,7 @@
                     container.innerHTML = '<div class="empty">暂无奖品</div>';
                 }
             } catch (e) {
+                console.error('加载奖品失败:', e);
                 container.innerHTML = '<div class="empty">加载奖品失败</div>';
             }
         }
@@ -758,6 +750,40 @@
                 console.error('兑换失败:', e);
                 alert('兑换失败，请重试');
             }
+        }
+
+        async function startLottery(prizeId) {
+            if (!currentUser) return;
+            if (!confirm('确定花费10积分参与超级加倍抽奖吗？')) return;
+            try {
+                // 调用抽奖函数（需要后端支持）
+                var data = await apiFetch('/rest/v1/rpc/exchange_lottery', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId })
+                });
+                if (data && data.success) {
+                    // 显示抽奖结果
+                    var resultText = data.multiplier === 1.5 ? '翻1.5倍' : '翻3.5倍';
+                    document.getElementById('lotteryResult').textContent = resultText;
+                    document.getElementById('lotteryPopup').classList.remove('hidden');
+                    // 更新积分
+                    currentUser.points -= 10;
+                    document.getElementById('pointsDisplay').textContent = currentUser.points;
+                    updatePointsDisplay();
+                    loadPrizes();
+                    loadRecords();
+                    if (isAdmin()) loadNotices();
+                } else {
+                    alert(data.msg || '抽奖失败');
+                }
+            } catch (e) {
+                console.error('抽奖失败:', e);
+                alert('抽奖失败，请重试');
+            }
+        }
+
+        function closeLotteryPopup() {
+            document.getElementById('lotteryPopup').classList.add('hidden');
         }
 
         async function loadRecords() {
