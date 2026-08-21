@@ -80,19 +80,6 @@
         .pdf-menu button { flex: 1; background: #fff; color: #000; border: 1px solid #000; padding: 10px; font-size: 14px; cursor: pointer; text-align: center; }
         .pdf-menu button:hover { background: #f0f0f0; }
         .faq-btn { background: #fff; color: #000; border: 1px solid #000; border-radius: 50%; width: 25px; height: 25px; line-height: 23px; text-align: center; cursor: pointer; display: inline-block; margin-left: 5px; }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal { background: #fff; border: 1px solid #000; padding: 20px; width: 90%; max-width: 400px; }
-        .modal h4 { margin-bottom: 15px; }
-        .modal input { margin-bottom: 15px; }
-        .modal .warning-text { color: red; font-size: 12px; margin-top: -5px; margin-bottom: 10px; display: none; }
-        .modal .warning-text.show { display: block; }
-        .modal button { background: #fff; color: #000; border: 1px solid #000; padding: 8px 16px; cursor: pointer; margin-right: 10px; }
-        .modal button.danger { background: #fff; color: #ff4444; border-color: #ff4444; }
-        .modal button.danger:hover { background: #ff4444; color: #fff; }
-        /* 抽奖弹窗 */
-        .lottery-popup { position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%); background: #fff; border: 2px solid gold; padding: 20px; z-index: 2000; text-align: center; }
-        .lottery-popup p { font-size: 18px; margin-bottom: 10px; }
-        .lottery-popup button { margin: 0 10px; }
         /* 新闻滚动区 */
         .news-scroll-container { border: 1px solid #000; height: 150px; overflow-y: auto; margin-bottom: 15px; background: #f9f9f9; }
         .news-scroll-list { list-style: none; padding: 0; margin: 0; }
@@ -100,6 +87,13 @@
         /* 新闻发布表单 */
         .news-form { margin-bottom: 15px; }
         .news-form textarea { height: 60px; }
+        /* 技能站按钮 */
+        .skills-btn { width: 100%; margin-bottom: 10px; background: #fff; color: #000; border: 1px solid #000; padding: 10px; font-size: 16px; cursor: pointer; }
+        .skills-btn:hover { background: #f0f0f0; }
+        /* 通用弹窗 */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal { background: #fff; border: 1px solid #000; padding: 20px; width: 90%; max-width: 400px; text-align: center; }
+        .modal p { font-size: 16px; margin-bottom: 15px; }
         @media (max-width: 600px) {
             body { padding: 10px; }
             .container { padding: 15px; }
@@ -119,585 +113,435 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- 登录界面 -->
-        <div id="loginSection" class="login-box">
-            <h3>队员登录</h3>
-            <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分。</div>
-            <input type="text" id="accountInput" placeholder="账号">
-            <input type="password" id="passwordLast4Input" placeholder="密码后4位" maxlength="4">
-            <button onclick="loginUser()">登录</button>
-        </div>
-
-        <!-- 主界面 -->
-        <div id="mainSection" class="hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <span class="greeting" id="greetingText">你好，</span>
-                <button class="logout-btn" onclick="logoutUser()">退出</button>
-            </div>
-            <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分。</div>
-
-            <div class="nav-bar">
-                <button class="nav-btn active" data-page="home">首页</button>
-                <button class="nav-btn" data-page="account">账号管理</button>
-                <button class="nav-btn" data-page="cupInfo">本赛季杯赛情况</button>
-            </div>
-
-            <!-- 首页 -->
-            <div id="page-home" class="page">
-                <!-- 管理员新闻发布表单 -->
-                <div id="adminNewsSection" style="display: none;" class="news-form">
-                    <div class="section-title">发布新闻</div>
-                    <input type="text" id="newsTitleInput" placeholder="新闻标题">
-                    <textarea id="newsContentInput" placeholder="新闻内容（支持换行）"></textarea>
-                    <button onclick="addNews()">发布</button>
-                </div>
-
-                <!-- 新闻垂直滚动区 -->
-                <div class="news-scroll-container" id="newsScrollContainer">
-                    <ul class="news-scroll-list" id="newsScrollList">
-                        <li>加载新闻中...</li>
-                    </ul>
-                </div>
-
-                <div class="pdf-menu">
-                    <button onclick="switchPage('cupRules')">查看本赛季杯赛规则</button>
-                    <button onclick="switchPage('eventRules')">查看积分兑换规则</button>
-                </div>
-
-                <div class="points-card">
-                    <div class="points-label">我的积分</div>
-                    <div class="points-value" id="pointsDisplay">0</div>
-                </div>
-
-                <div class="section-title">可兑换奖品</div>
-                <div class="prize-link">
-                    <a href="#" onclick="switchPage('eventRules'); return false;">查看积分兑换规则 →</a>
-                </div>
-                <div id="prizeList"><div class="loading">加载中...</div></div>
-
-                <div class="section-title">我的兑换记录</div>
-                <div id="recordList"><div class="loading">加载中...</div></div>
-                <button id="clearAllBtn" onclick="clearAllExchanges()" style="margin-top: 10px;">清除全部兑换记录</button>
-
-                <div id="adminNoticeSection" style="display: none;">
-                    <div class="section-title">管理员通知区</div>
-                    <div class="notice-box" id="noticeBox"><div class="loading">加载中...</div></div>
-                </div>
-            </div>
-
-            <!-- 账号管理 -->
-            <div id="page-account" class="page hidden">
-                <div class="section-title">账号管理</div>
-                <div class="account-box">
-                    <p><strong>修改登录名和用户名</strong></p>
-                    <input type="text" id="newAccountInput" placeholder="新登录名">
-                    <input type="text" id="newNameInput" placeholder="新用户名">
-                    <button onclick="changeAccountAndName()">确认修改</button>
-                    <div class="divider"></div>
-                    <button onclick="openSwitchAccountModal()">切换账号</button>
-                </div>
-
-                <div class="section-title">账号安全</div>
-                <div class="account-box">
-                    <button onclick="openPasswordModal()">修改密码</button>
-                    <button class="danger-btn" onclick="openDeleteAccountModal()">注销账号</button>
-                </div>
-            </div>
-
-            <!-- 本赛季杯赛情况 -->
-            <div id="page-cupInfo" class="page hidden">
-                <div class="section-title">本赛季杯赛情况</div>
-                <div id="adminNotice" style="display: none; margin-bottom: 10px; padding: 10px; background: #f9f9f9; border: 1px solid #000;">
-                    由于你是管理员，你将可以看到本赛季杯赛全体队员的情况。
-                </div>
-                <div class="cup-info" id="cupInfoContainer"><div class="loading">加载中...</div></div>
-                <div class="remark">
-                    当你5天内出现有3次冠军并净胜球46球，你可获得额外的5积分。
-                    <span class="faq-btn" onclick="alert('申请请在商品兑换页查看')">?</span>
-                </div>
-            </div>
-
-            <!-- 本赛季杯赛规则 -->
-            <div id="page-cupRules" class="page hidden">
-                <div class="section-title">本赛季杯赛规则</div>
-                <p style="margin-bottom: 10px;">查看杯赛规则 PDF：</p>
-                <iframe class="pdf-container" src="cup_rules.pdf" title="本赛季杯赛规则"></iframe>
-            </div>
-
-            <!-- 本赛季积分兑换活动规则 -->
-            <div id="page-eventRules" class="page hidden">
-                <div class="section-title">本赛季积分兑换活动规则</div>
-                <p style="margin-bottom: 10px;">查看积分兑换规则 PDF：</p>
-                <iframe class="pdf-container" src="exchange_rules.pdf" title="本赛季积分兑换活动规则"></iframe>
-            </div>
-        </div>
+<div class="container">
+    <!-- 登录界面 -->
+    <div id="loginSection" class="login-box">
+        <h3>队员登录</h3>
+        <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分。</div>
+        <input type="text" id="accountInput" placeholder="账号">
+        <input type="password" id="passwordLast4Input" placeholder="密码后4位" maxlength="4">
+        <button onclick="loginUser()">登录</button>
     </div>
 
-    <!-- 修改密码模态框 -->
-    <div id="passwordModal" class="modal-overlay" style="display:none;">
-        <div class="modal">
-            <h4>修改密码</h4>
-            <input type="password" id="oldPasswordInput" placeholder="原密码">
-            <input type="password" id="newPasswordInput" placeholder="新密码">
-            <input type="password" id="confirmPasswordInput" placeholder="确认新密码">
-            <div>
-                <button onclick="submitPasswordChange()">确认</button>
-                <button onclick="closeModal('passwordModal')">取消</button>
+    <!-- 主界面 -->
+    <div id="mainSection" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <span class="greeting" id="greetingText">你好，</span>
+            <button class="logout-btn" onclick="logoutUser()">退出</button>
+        </div>
+        <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分。</div>
+
+        <!-- 进入技能站按钮 -->
+        <button class="skills-btn" onclick="window.location.href='https://lovewca.github.io/skills/'">→ 进入“球会友谊联赛技能积分兑换系统”</button>
+
+        <div class="nav-bar">
+            <button class="nav-btn active" data-page="home">首页</button>
+            <button class="nav-btn" data-page="account">账号管理</button>
+            <button class="nav-btn" data-page="cupInfo">本赛季杯赛情况</button>
+        </div>
+
+        <!-- 首页 -->
+        <div id="page-home" class="page">
+            <!-- 管理员新闻发布表单 -->
+            <div id="adminNewsSection" style="display: none;" class="news-form">
+                <div class="section-title">发布新闻</div>
+                <input type="text" id="newsTitleInput" placeholder="新闻标题">
+                <textarea id="newsContentInput" placeholder="新闻内容（支持换行）"></textarea>
+                <button onclick="addNews()">发布</button>
+            </div>
+
+            <!-- 新闻滚动区 -->
+            <div class="news-scroll-container" id="newsScrollContainer">
+                <ul class="news-scroll-list" id="newsScrollList">
+                    <li>加载新闻中...</li>
+                </ul>
+            </div>
+
+            <div class="pdf-menu">
+                <button onclick="switchPage('cupRules')">查看本赛季杯赛规则</button>
+                <button onclick="switchPage('eventRules')">查看积分兑换规则</button>
+            </div>
+
+            <div class="points-card">
+                <div class="points-label">我的积分</div>
+                <div class="points-value" id="pointsDisplay">0</div>
+            </div>
+
+            <div class="section-title">可兑换奖品</div>
+            <div class="prize-link">
+                <a href="#" onclick="switchPage('eventRules'); return false;">查看积分兑换规则 →</a>
+            </div>
+            <div id="prizeList"><div class="loading">加载中...</div></div>
+
+            <div class="section-title">我的兑换记录</div>
+            <div id="recordList"><div class="loading">加载中...</div></div>
+            <button id="clearAllBtn" onclick="clearAllExchanges()" style="margin-top: 10px;">清除全部兑换记录</button>
+
+            <div id="adminNoticeSection" style="display: none;">
+                <div class="section-title">管理员通知区</div>
+                <div class="notice-box" id="noticeBox"><div class="loading">加载中...</div></div>
             </div>
         </div>
-    </div>
 
-    <!-- 注销账号模态框 -->
-    <div id="deleteAccountModal" class="modal-overlay" style="display:none;">
-        <div class="modal">
-            <h4>注销账号</h4>
-            <p>你现在正在注销你的本赛季杯赛积分兑换活动配套系统账号，输入你的密码以继续。</p>
-            <input type="password" id="deletePasswordInput" placeholder="输入密码">
-            <div class="warning-text" id="deleteWarning">一旦你完成了这些，你的账号就将失效，你的积分可能不会被继续保存在用户名单中。</div>
-            <div>
-                <button class="danger" onclick="submitDeleteAccount()">确认注销</button>
-                <button onclick="closeModal('deleteAccountModal')">取消</button>
+        <!-- 账号管理 -->
+        <div id="page-account" class="page hidden">
+            <div class="section-title">账号管理</div>
+            <div class="account-box">
+                <p><strong>修改登录名和用户名</strong></p>
+                <input type="text" id="newAccountInput" placeholder="新登录名">
+                <input type="text" id="newNameInput" placeholder="新用户名">
+                <button onclick="changeAccountAndName()">确认修改</button>
+                <div class="divider"></div>
+                <button onclick="openSwitchAccountModal()">切换账号</button>
+            </div>
+
+            <div class="section-title">账号安全</div>
+            <div class="account-box">
+                <button onclick="openPasswordModal()">修改密码</button>
+                <button class="danger-btn" onclick="openDeleteAccountModal()">注销账号</button>
             </div>
         </div>
-    </div>
 
-    <!-- 切换账号模态框 -->
-    <div id="switchAccountModal" class="modal-overlay" style="display:none;">
-        <div class="modal">
-            <h4>切换账号</h4>
-            <p>输入新的登录名，如果切换失败将自动保留原账号。</p>
-            <input type="text" id="switchAccountInput" placeholder="新登录名">
-            <div>
-                <button onclick="submitSwitchAccount()">确认切换</button>
-                <button onclick="closeModal('switchAccountModal')">取消</button>
+        <!-- 本赛季杯赛情况 -->
+        <div id="page-cupInfo" class="page hidden">
+            <div class="section-title">本赛季杯赛情况</div>
+            <div id="adminNotice" style="display: none; margin-bottom: 10px; padding: 10px; background: #f9f9f9; border: 1px solid #000;">
+                由于你是管理员，你将可以看到本赛季杯赛全体队员的情况。
+            </div>
+            <div class="cup-info" id="cupInfoContainer"><div class="loading">加载中...</div></div>
+            <div class="remark">
+                当你5天内出现有3次冠军并净胜球46球，你可获得额外的5积分。
+                <span class="faq-btn" onclick="showModal('申请请在商品兑换页查看')">?</span>
             </div>
         </div>
+
+        <!-- 本赛季杯赛规则 -->
+        <div id="page-cupRules" class="page hidden">
+            <div class="section-title">本赛季杯赛规则</div>
+            <p style="margin-bottom: 10px;">查看杯赛规则 PDF：</p>
+            <iframe class="pdf-container" src="cup_rules.pdf" title="本赛季杯赛规则"></iframe>
+        </div>
+
+        <!-- 本赛季积分兑换活动规则 -->
+        <div id="page-eventRules" class="page hidden">
+            <div class="section-title">本赛季积分兑换活动规则</div>
+            <p style="margin-bottom: 10px;">查看积分兑换规则 PDF：</p>
+            <iframe class="pdf-container" src="exchange_rules.pdf" title="本赛季积分兑换活动规则"></iframe>
+        </div>
     </div>
+</div>
 
-    <!-- 抽奖弹窗 -->
-    <div id="lotteryPopup" class="lottery-popup hidden">
-        <p>恭喜你获得翻倍机会！</p>
-        <p id="lotteryResult" style="font-size: 24px; font-weight: bold; color: gold;">翻？倍</p>
-        <button onclick="closeLotteryPopup()">确定</button>
+<!-- 通用弹窗 -->
+<div id="alertModal" class="modal-overlay hidden">
+    <div class="modal">
+        <p id="alertText"></p>
+        <button onclick="closeModal('alertModal')">知道了</button>
     </div>
+</div>
 
-    <script>
-        var SUPABASE_URL = 'https://hjktfecloctfpaoohzax.supabase.co';
-        var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqa3RmZWNsb2N0ZnBhb29oemF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODQ5MzksImV4cCI6MjEwMjQ2MDkzOX0.Kd94mBz7-2EX9Xu3HZUKawIgUWCrVbFsH7rXFyz7WUg';
+<!-- 修改密码模态框 -->
+<div id="passwordModal" class="modal-overlay hidden">
+    <div class="modal" style="text-align:left;">
+        <h4>修改密码</h4>
+        <input type="password" id="oldPasswordInput" placeholder="原密码">
+        <input type="password" id="newPasswordInput" placeholder="新密码">
+        <input type="password" id="confirmPasswordInput" placeholder="确认新密码">
+        <div>
+            <button onclick="submitPasswordChange()">确认</button>
+            <button onclick="closeModal('passwordModal')">取消</button>
+        </div>
+    </div>
+</div>
 
-        var ADMIN_ACCOUNTS = ['1', 'shengsiyuan'];
+<!-- 注销账号模态框 -->
+<div id="deleteAccountModal" class="modal-overlay hidden">
+    <div class="modal" style="text-align:left;">
+        <h4>注销账号</h4>
+        <p>你现在正在注销你的本赛季杯赛积分兑换活动配套系统账号，输入你的密码以继续。</p>
+        <input type="password" id="deletePasswordInput" placeholder="输入密码">
+        <div class="warning-text" id="deleteWarning" style="color:red;font-size:12px;margin-top:-5px;margin-bottom:10px;display:none;">一旦你完成了这些，你的账号就将失效，你的积分可能不会被继续保存在用户名单中。</div>
+        <div>
+            <button class="danger" onclick="submitDeleteAccount()">确认注销</button>
+            <button onclick="closeModal('deleteAccountModal')">取消</button>
+        </div>
+    </div>
+</div>
 
-        function getHeaders() {
-            return {
-                'apikey': SUPABASE_ANON_KEY,
-                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-                'Content-Type': 'application/json'
-            };
+<!-- 切换账号模态框 -->
+<div id="switchAccountModal" class="modal-overlay hidden">
+    <div class="modal" style="text-align:left;">
+        <h4>切换账号</h4>
+        <p>输入新的登录名，如果切换失败将自动保留原账号。</p>
+        <input type="text" id="switchAccountInput" placeholder="新登录名">
+        <div>
+            <button onclick="submitSwitchAccount()">确认切换</button>
+            <button onclick="closeModal('switchAccountModal')">取消</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    var SUPABASE_URL = 'https://hjktfecloctfpaoohzax.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqa3RmZWNsb2N0ZnBhb29oemF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODQ5MzksImV4cCI6MjEwMjQ2MDkzOX0.Kd94mBz7-2EX9Xu3HZUKawIgUWCrVbFsH7rXFyz7WUg';
+
+    var ADMIN_ACCOUNTS = ['1', 'shengsiyuan'];
+
+    function getHeaders() {
+        return {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json'
+        };
+    }
+
+    async function apiFetch(path, options) {
+        options = options || {};
+        options.headers = getHeaders();
+        var response = await fetch(SUPABASE_URL + path, options);
+        if (!response.ok) {
+            var errorText = await response.text();
+            console.error('API错误 ' + response.status + ':', errorText);
+            throw new Error('API错误 ' + response.status);
         }
+        return await response.json();
+    }
 
-        async function apiFetch(path, options) {
-            options = options || {};
-            options.headers = getHeaders();
-            var response = await fetch(SUPABASE_URL + path, options);
-            if (!response.ok) {
-                var errorText = await response.text();
-                console.error('API错误 ' + response.status + ':', errorText);
-                throw new Error('API错误 ' + response.status);
-            }
-            return await response.json();
-        }
+    var currentUser = null;
+    var userUsage = {};
+    var selectedQty = {};
+    var autoLogoutTimer;
 
-        var currentUser = null;
-        var userUsage = {};
-        var selectedQty = {};
-        var autoLogoutTimer;
+    function showModal(text) {
+        document.getElementById('alertText').textContent = text;
+        document.getElementById('alertModal').classList.remove('hidden');
+    }
 
-        function resetAutoLogout() {
-            clearTimeout(autoLogoutTimer);
-            autoLogoutTimer = setTimeout(function() {
-                if (currentUser) logoutUser(false);
-            }, 180000);
-        }
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
+    }
 
-        document.addEventListener('click', resetAutoLogout);
-        document.addEventListener('keydown', resetAutoLogout);
-        document.addEventListener('mousemove', resetAutoLogout);
-        document.addEventListener('scroll', resetAutoLogout);
+    function resetAutoLogout() {
+        clearTimeout(autoLogoutTimer);
+        autoLogoutTimer = setTimeout(function() {
+            if (currentUser) logoutUser(false);
+        }, 180000);
+    }
 
-        function switchPage(page) {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            var activeBtn = document.querySelector('.nav-btn[data-page="' + page + '"]');
-            if (activeBtn) activeBtn.classList.add('active');
-            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-            document.getElementById('page-' + page).classList.remove('hidden');
-            if (page === 'cupInfo') loadCupInfo();
-            if (page === 'home') loadAll();
-        }
+    document.addEventListener('click', resetAutoLogout);
+    document.addEventListener('keydown', resetAutoLogout);
+    document.addEventListener('mousemove', resetAutoLogout);
+    document.addEventListener('scroll', resetAutoLogout);
 
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                switchPage(btn.getAttribute('data-page'));
+    function switchPage(page) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        var activeBtn = document.querySelector('.nav-btn[data-page="' + page + '"]');
+        if (activeBtn) activeBtn.classList.add('active');
+        document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+        document.getElementById('page-' + page).classList.remove('hidden');
+        if (page === 'cupInfo') loadCupInfo();
+        if (page === 'home') loadAll();
+    }
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            switchPage(btn.getAttribute('data-page'));
+        });
+    });
+
+    async function loginUser() {
+        var account = document.getElementById('accountInput').value.trim();
+        var last4 = document.getElementById('passwordLast4Input').value.trim();
+        if (!account || !last4) { showModal('请输入账号和密码后4位'); return; }
+        try {
+            var data = await apiFetch('/rest/v1/rpc/login_user_last4', {
+                method: 'POST',
+                body: JSON.stringify({ p_account: account, p_last4: last4 })
             });
-        });
-
-        async function loginUser() {
-            var account = document.getElementById('accountInput').value.trim();
-            var last4 = document.getElementById('passwordLast4Input').value.trim();
-            if (!account || !last4) { alert('请输入账号和密码后4位'); return; }
-            try {
-                var data = await apiFetch('/rest/v1/rpc/login_user_last4', {
-                    method: 'POST',
-                    body: JSON.stringify({ p_account: account, p_last4: last4 })
-                });
-                if (data && data.success) {
-                    currentUser = { id: data.user_id, name: data.name, points: data.points, account: account };
-                    // 静默检查积分失效
-                    try {
-                        var userData = await apiFetch('/rest/v1/users?select=created_at&id=eq.' + currentUser.id);
-                        if (userData.length > 0) {
-                            var days = Math.floor((new Date() - new Date(userData[0].created_at)) / 86400000);
-                            if (days > 365) {
-                                await apiFetch('/rest/v1/rpc/expire_points', { method: 'POST', body: JSON.stringify({ p_user_id: currentUser.id }) });
-                                currentUser.points = 0;
-                            }
-                        }
-                    } catch (e) {}
-                    showMainSection();
-                } else {
-                    alert(data.msg || '账号或密码后4位错误');
-                }
-            } catch (e) {
-                console.error('登录失败:', e);
-                alert('登录失败，请检查网络或配置');
-            }
-        }
-
-        function showMainSection() {
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('mainSection').classList.remove('hidden');
-            document.getElementById('greetingText').textContent = '你好，' + currentUser.name;
-            document.getElementById('pointsDisplay').textContent = currentUser.points;
-            updatePointsDisplay();
-            if (isAdmin()) {
-                document.getElementById('adminNoticeSection').style.display = 'block';
-                document.getElementById('adminNewsSection').style.display = 'block';
+            if (data && data.success) {
+                currentUser = { id: data.user_id, name: data.name, points: data.points, account: account };
+                // 静默检查积分失效
+                await silentlyExpirePoints();
+                showMainSection();
             } else {
-                document.getElementById('adminNoticeSection').style.display = 'none';
-                document.getElementById('adminNewsSection').style.display = 'none';
+                showModal(data.msg || '账号或密码后4位错误');
             }
-            loadAll();
-            resetAutoLogout();
+        } catch (e) {
+            console.error('登录失败:', e);
+            showModal('登录失败，请检查网络或配置');
         }
+    }
 
-        function isAdmin() {
-            return currentUser && ADMIN_ACCOUNTS.includes(currentUser.account);
-        }
-
-        function logoutUser() {
-            clearTimeout(autoLogoutTimer);
-            currentUser = null;
-            document.getElementById('loginSection').classList.remove('hidden');
-            document.getElementById('mainSection').classList.add('hidden');
-            document.getElementById('accountInput').value = '';
-            document.getElementById('passwordLast4Input').value = '';
-            switchPage('home');
-        }
-
-        function updatePointsDisplay() {
-            var el = document.getElementById('pointsDisplay');
-            if (currentUser && currentUser.points >= 50) {
-                el.classList.add('gold-flash');
-            } else {
-                el.classList.remove('gold-flash');
-            }
-        }
-
-        async function loadNews() {
-            try {
-                var data = await apiFetch('/rest/v1/news?select=title,content&order=created_at.desc');
-                var list = document.getElementById('newsScrollList');
-                if (Array.isArray(data) && data.length > 0) {
-                    list.innerHTML = '';
-                    data.forEach(news => {
-                        var li = document.createElement('li');
-                        li.textContent = news.title + '：\n' + news.content;
-                        list.appendChild(li);
+    async function silentlyExpirePoints() {
+        try {
+            var userData = await apiFetch('/rest/v1/users?select=created_at&id=eq.' + currentUser.id);
+            if (Array.isArray(userData) && userData.length > 0) {
+                var createdAt = new Date(userData[0].created_at);
+                var daysDiff = Math.floor((new Date() - createdAt) / (1000*60*60*24));
+                if (daysDiff > 365) {
+                    var expireRes = await apiFetch('/rest/v1/rpc/expire_points', {
+                        method: 'POST',
+                        body: JSON.stringify({ p_user_id: currentUser.id })
                     });
-                    startNewsScroll();
-                } else {
-                    list.innerHTML = '<li>暂无新闻</li>';
+                    if (expireRes && expireRes.success) {
+                        currentUser.points = 0;
+                        // 如果已经显示积分，更新
+                        var pointsEl = document.getElementById('pointsDisplay');
+                        if (pointsEl) pointsEl.textContent = '0';
+                    }
                 }
-            } catch (e) {
-                console.error('加载新闻失败:', e);
-                document.getElementById('newsScrollList').innerHTML = '<li>新闻加载失败</li>';
             }
+        } catch (e) {
+            console.error('积分失效检查失败:', e);
         }
+    }
 
-        function startNewsScroll() {
+    function showMainSection() {
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('mainSection').classList.remove('hidden');
+        document.getElementById('greetingText').textContent = '你好，' + currentUser.name;
+        document.getElementById('pointsDisplay').textContent = currentUser.points;
+        updatePointsDisplay();
+        if (isAdmin()) {
+            document.getElementById('adminNoticeSection').style.display = 'block';
+            document.getElementById('adminNewsSection').style.display = 'block';
+        } else {
+            document.getElementById('adminNoticeSection').style.display = 'none';
+            document.getElementById('adminNewsSection').style.display = 'none';
+        }
+        loadAll();
+        resetAutoLogout();
+    }
+
+    function isAdmin() {
+        return currentUser && ADMIN_ACCOUNTS.includes(currentUser.account);
+    }
+
+    function logoutUser() {
+        clearTimeout(autoLogoutTimer);
+        currentUser = null;
+        document.getElementById('loginSection').classList.remove('hidden');
+        document.getElementById('mainSection').classList.add('hidden');
+        document.getElementById('accountInput').value = '';
+        document.getElementById('passwordLast4Input').value = '';
+        switchPage('home');
+    }
+
+    function updatePointsDisplay() {
+        var el = document.getElementById('pointsDisplay');
+        if (currentUser && currentUser.points >= 50) {
+            el.classList.add('gold-flash');
+        } else {
+            el.classList.remove('gold-flash');
+        }
+    }
+
+    // 新闻加载
+    async function loadNews() {
+        try {
+            var data = await apiFetch('/rest/v1/news?select=title,content&order=created_at.desc');
             var list = document.getElementById('newsScrollList');
-            setInterval(function() {
-                if (list.children.length > 1) {
-                    var first = list.children[0];
-                    list.removeChild(first);
-                    list.appendChild(first);
-                }
-            }, 3000);
-        }
-
-        async function addNews() {
-            var title = document.getElementById('newsTitleInput').value.trim();
-            var content = document.getElementById('newsContentInput').value.trim();
-            if (!title || !content) { alert('请输入新闻标题和内容'); return; }
-            try {
-                var data = await apiFetch('/rest/v1/rpc/add_news', {
-                    method: 'POST',
-                    body: JSON.stringify({ p_title: title, p_content: content })
+            if (Array.isArray(data) && data.length > 0) {
+                list.innerHTML = '';
+                data.forEach(news => {
+                    var li = document.createElement('li');
+                    li.textContent = news.title + '：\n' + news.content;
+                    list.appendChild(li);
                 });
-                if (data && data.success) {
-                    alert('新闻发布成功');
-                    document.getElementById('newsTitleInput').value = '';
-                    document.getElementById('newsContentInput').value = '';
-                    loadNews();
-                } else {
-                    alert(data.msg || '发布失败');
-                }
-            } catch (e) {
-                console.error('发布新闻失败:', e);
-                alert('发布失败，请重试');
-            }
-        }
-
-        async function changeAccountAndName() {
-            var newAccount = document.getElementById('newAccountInput').value.trim();
-            var newName = document.getElementById('newNameInput').value.trim();
-            if (!newAccount && !newName) { alert('请输入新登录名或新用户名'); return; }
-
-            if (newAccount) {
-                try {
-                    var accountData = await apiFetch('/rest/v1/rpc/update_account', {
-                        method: 'POST',
-                        body: JSON.stringify({ p_user_id: currentUser.id, p_new_account: newAccount })
-                    });
-                    if (accountData && accountData.success) {
-                        currentUser.account = accountData.new_account || newAccount;
-                        document.getElementById('newAccountInput').value = '';
-                    } else {
-                        alert(accountData.msg || '修改登录名失败');
-                        return;
-                    }
-                } catch (e) {
-                    console.error('修改登录名失败:', e);
-                    alert('修改登录名失败，请重试');
-                    return;
-                }
-            }
-
-            if (newName) {
-                try {
-                    var nameData = await apiFetch('/rest/v1/rpc/update_name', {
-                        method: 'POST',
-                        body: JSON.stringify({ p_user_id: currentUser.id, p_new_name: newName })
-                    });
-                    if (nameData && nameData.success) {
-                        currentUser.name = nameData.new_name || newName;
-                        document.getElementById('greetingText').textContent = '你好，' + currentUser.name;
-                        document.getElementById('newNameInput').value = '';
-                    } else {
-                        alert(nameData.msg || '修改用户名失败');
-                        return;
-                    }
-                } catch (e) {
-                    console.error('修改用户名失败:', e);
-                    alert('修改用户名失败，请重试');
-                    return;
-                }
-            }
-
-            alert('账号信息修改成功');
-        }
-
-        function openPasswordModal() {
-            document.getElementById('oldPasswordInput').value = '';
-            document.getElementById('newPasswordInput').value = '';
-            document.getElementById('confirmPasswordInput').value = '';
-            document.getElementById('passwordModal').style.display = 'flex';
-        }
-
-        function closeModal(modalId) {
-            var modal = document.getElementById(modalId);
-            modal.classList.add('hidden');
-            modal.style.display = 'none';
-        }
-
-        async function submitPasswordChange() {
-            var oldPassword = document.getElementById('oldPasswordInput').value.trim();
-            var newPassword = document.getElementById('newPasswordInput').value.trim();
-            var confirmPassword = document.getElementById('confirmPasswordInput').value.trim();
-            if (!oldPassword || !newPassword || !confirmPassword) { alert('请填写所有密码字段'); return; }
-            if (newPassword !== confirmPassword) { alert('两次输入的新密码不一致'); return; }
-
-            try {
-                var data = await apiFetch('/rest/v1/rpc/update_password', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        p_user_id: currentUser.id,
-                        p_old_password: oldPassword,
-                        p_new_password: newPassword
-                    })
-                });
-                if (data && data.success) {
-                    alert('密码修改成功，请重新登录');
-                    closeModal('passwordModal');
-                    logoutUser();
-                } else {
-                    alert(data.msg || '修改失败');
-                }
-            } catch (e) {
-                console.error('修改密码失败:', e);
-                alert('修改失败，请重试');
-            }
-        }
-
-        function openDeleteAccountModal() {
-            document.getElementById('deletePasswordInput').value = '';
-            document.getElementById('deleteWarning').classList.remove('show');
-            document.getElementById('deleteAccountModal').style.display = 'flex';
-        }
-
-        document.getElementById('deletePasswordInput').addEventListener('input', function() {
-            if (this.value.trim().length > 0) {
-                document.getElementById('deleteWarning').classList.add('show');
+                startNewsScroll();
             } else {
-                document.getElementById('deleteWarning').classList.remove('show');
+                list.innerHTML = '<li>暂无新闻</li>';
             }
-        });
+        } catch (e) {
+            console.error('加载新闻失败:', e);
+            document.getElementById('newsScrollList').innerHTML = '<li>新闻加载失败</li>';
+        }
+    }
 
-        async function submitDeleteAccount() {
-            var password = document.getElementById('deletePasswordInput').value.trim();
-            if (!password) { alert('请输入密码'); return; }
-
-            try {
-                var data = await apiFetch('/rest/v1/rpc/delete_user', {
-                    method: 'POST',
-                    body: JSON.stringify({ p_user_id: currentUser.id, p_password: password })
-                });
-                if (data && data.success) {
-                    alert('账号已注销');
-                    closeModal('deleteAccountModal');
-                    logoutUser();
-                } else {
-                    alert(data.msg || '密码错误');
-                }
-            } catch (e) {
-                console.error('注销失败:', e);
-                alert('注销失败，请重试');
+    function startNewsScroll() {
+        var list = document.getElementById('newsScrollList');
+        setInterval(function() {
+            if (list.children.length > 1) {
+                var first = list.children[0];
+                list.removeChild(first);
+                list.appendChild(first);
             }
-        }
+        }, 3000);
+    }
 
-        function openSwitchAccountModal() {
-            document.getElementById('switchAccountInput').value = '';
-            document.getElementById('switchAccountModal').style.display = 'flex';
-        }
-
-        async function submitSwitchAccount() {
-            var newAccount = document.getElementById('switchAccountInput').value.trim();
-            if (!newAccount) { alert('请输入新登录名'); return; }
-
-            try {
-                var data = await apiFetch('/rest/v1/rpc/update_account', {
-                    method: 'POST',
-                    body: JSON.stringify({ p_user_id: currentUser.id, p_new_account: newAccount })
-                });
-                if (data && data.success) {
-                    currentUser.account = data.new_account || newAccount;
-                    document.getElementById('switchAccountInput').value = '';
-                    closeModal('switchAccountModal');
-                    alert('切换账号成功，下次登录请使用新账号');
-                } else {
-                    alert(data.msg || '切换失败，已保留原账号');
-                }
-            } catch (e) {
-                console.error('切换账号失败:', e);
-                alert('切换失败，已保留原账号');
+    // 添加新闻
+    async function addNews() {
+        var title = document.getElementById('newsTitleInput').value.trim();
+        var content = document.getElementById('newsContentInput').value.trim();
+        if (!title || !content) { showModal('请输入新闻标题和内容'); return; }
+        try {
+            var data = await apiFetch('/rest/v1/rpc/add_news', {
+                method: 'POST',
+                body: JSON.stringify({ p_title: title, p_content: content })
+            });
+            if (data && data.success) {
+                showModal('新闻发布成功');
+                document.getElementById('newsTitleInput').value = '';
+                document.getElementById('newsContentInput').value = '';
+                loadNews();
+            } else {
+                showModal(data.msg || '发布失败');
             }
+        } catch (e) {
+            console.error('发布新闻失败:', e);
+            showModal('发布失败，请重试');
         }
+    }
 
-        async function loadUserUsage() {
-            if (!currentUser) return;
-            try {
-                var data = await apiFetch('/rest/v1/exchanges?user_id=eq.' + currentUser.id + '&select=prize_id,quantity,created_at');
-                userUsage = {};
-                data.forEach(function(record) {
-                    var prizeId = record.prize_id;
-                    userUsage[prizeId] = (userUsage[prizeId] || 0) + record.quantity;
-                });
-            } catch (e) {
-                console.error('加载用户兑换情况失败:', e);
+    // 加载用户兑换情况
+    async function loadUserUsage() {
+        if (!currentUser) return;
+        try {
+            var data = await apiFetch('/rest/v1/exchanges?user_id=eq.' + currentUser.id + '&select=prize_id,quantity,created_at');
+            userUsage = {};
+            data.forEach(function(record) {
+                var prizeId = record.prize_id;
+                userUsage[prizeId] = (userUsage[prizeId] || 0) + record.quantity;
+            });
+        } catch (e) {
+            console.error('加载用户兑换情况失败:', e);
+        }
+    }
+
+    // 加载奖品（含折扣）
+    async function loadPrizes() {
+        var container = document.getElementById('prizeList');
+        container.innerHTML = '<div class="loading">加载中...</div>';
+        try {
+            await loadUserUsage();
+            const [prizesData, discountsData] = await Promise.all([
+                apiFetch('/rest/v1/prizes?select=*&order=cost.asc'),
+                apiFetch('/rest/v1/discounts?select=prize_id,discount_label')
+            ]);
+            const discountMap = {};
+            if (Array.isArray(discountsData)) {
+                discountsData.forEach(d => { discountMap[d.prize_id] = d.discount_label; });
             }
-        }
 
-        async function loadPrizes() {
-            var container = document.getElementById('prizeList');
-            container.innerHTML = '<div class="loading">加载中...</div>';
-            try {
-                await loadUserUsage();
-                const [prizesData, discountsData] = await Promise.all([
-                    apiFetch('/rest/v1/prizes?select=*&order=cost.asc'),
-                    apiFetch('/rest/v1/discounts?select=prize_id,discount_label')
-                ]);
+            if (Array.isArray(prizesData) && prizesData.length > 0) {
+                container.innerHTML = prizesData.map(function(p) {
+                    var purchaseLimit = p.purchase_limit || 0;
+                    var alreadyUsed = userUsage[p.id] || 0;
+                    var remaining = purchaseLimit > 0 ? Math.max(purchaseLimit - alreadyUsed, 0) : 999999;
+                    var canAdd = remaining > 0 && p.stock > 0;
+                    var isLocked = purchaseLimit > 0 && remaining <= 0;
+                    var stockText = purchaseLimit > 0 ? '限购 ' + purchaseLimit + ' 次，已兑 ' + alreadyUsed + ' 次' : '剩余 ' + p.stock + ' 件';
+                    var rulesText = purchaseLimit > 0 ? '兑换条例：' + (p.limit_period_days > 0 ? p.limit_period_days + '天内限购' + purchaseLimit + '次' : '永久限购' + purchaseLimit + '次') : '兑换条例：不限购';
+                    var discountBadge = '';
+                    if (discountMap[p.id]) {
+                        discountBadge = '<div class="discount-badge">折扣：' + discountMap[p.id] + '</div>';
+                    }
+                    var extraRemark = '';
+                    if (p.name === '【申请】5天内已出现3次冠军、46净胜球，申领积分') {
+                        extraRemark = '<div style="color:#888; font-size:12px; margin-top:3px;">合理申请，请勿多加。</div>';
+                    }
 
-                const discountMap = {};
-                if (Array.isArray(discountsData)) {
-                    discountsData.forEach(d => { discountMap[d.prize_id] = d.discount_label; });
-                }
-
-                if (Array.isArray(prizesData) && prizesData.length > 0) {
-                    container.innerHTML = prizesData.map(function(p) {
-                        var purchaseLimit = p.purchase_limit || 0;
-                        var alreadyUsed = userUsage[p.id] || 0;
-                        var remaining = purchaseLimit > 0 ? Math.max(purchaseLimit - alreadyUsed, 0) : 999999;
-                        var canAdd = remaining > 0 && p.stock > 0;
-                        var isLocked = purchaseLimit > 0 && remaining <= 0;
-                        var stockText = purchaseLimit > 0 ? '限购 ' + purchaseLimit + ' 次，已兑 ' + alreadyUsed + ' 次' : '剩余 ' + p.stock + ' 件';
-                        var rulesText = purchaseLimit > 0 ? '兑换条例：' + (p.limit_period_days > 0 ? p.limit_period_days + '天内限购' + purchaseLimit + '次' : '永久限购' + purchaseLimit + '次') : '兑换条例：不限购';
-
-                        var discountBadge = '';
-                        if (discountMap[p.id]) {
-                            discountBadge = '<div class="discount-badge">折扣：' + discountMap[p.id] + '</div>';
-                        }
-
-                        var extraRemark = '';
-                        if (p.name === '【申请】5天内已出现3次冠军、46净胜球，申领积分') {
-                            extraRemark = '<div style="color:#888; font-size:12px; margin-top:3px;">合理申请，请勿多加。</div>';
-                        }
-
-                        if (p.name === '【申请】超级加倍抽奖') {
-                            return '<div class="prize-item">' +
-                                '<div class="prize-info">' +
-                                    '<div class="prize-name">' + p.name + '</div>' +
-                                    '<div class="prize-cost">' + p.cost + ' 积分</div>' +
-                                    '<div class="prize-stock">' + stockText + '</div>' +
-                                    '<div class="prize-rules">' + rulesText + '</div>' +
-                                    discountBadge + extraRemark +
-                                '</div>' +
-                                '<button class="exchange-btn" onclick="startLottery(\'' + p.id + '\')" ' + (!canAdd ? 'disabled' : '') + '>' + (isLocked ? '已达上限' : '抽奖') + '</button>' +
-                                '</div>';
-                        }
-
-                        if (p.name === '【免费】可口可乐600mL1瓶') {
-                            return '<div class="prize-item">' +
-                                '<div class="prize-info">' +
-                                    '<div class="prize-name">' + p.name + '</div>' +
-                                    '<div class="prize-cost">免费</div>' +
-                                    '<div class="prize-stock">' + stockText + '</div>' +
-                                    '<div class="prize-rules">' + rulesText + '</div>' +
-                                    discountBadge + extraRemark +
-                                '</div>' +
-                                '<button class="exchange-btn" onclick="exchangePrize(\'' + p.id + '\')" ' + (!canAdd ? 'disabled' : '') + '>' + (isLocked ? '已达上限' : '兑换') + '</button>' +
-                                '</div>';
-                        }
-
+                    // 特殊商品：抽奖
+                    if (p.name === '【申请】超级加倍抽奖') {
                         return '<div class="prize-item">' +
                             '<div class="prize-info">' +
                                 '<div class="prize-name">' + p.name + '</div>' +
@@ -706,230 +550,214 @@
                                 '<div class="prize-rules">' + rulesText + '</div>' +
                                 discountBadge + extraRemark +
                             '</div>' +
-                            '<div class="quantity-selector">' +
-                                '<button class="qty-btn" onclick="changeQty(\'' + p.id + '\', -1)" ' + (!canAdd ? 'disabled' : '') + '>−</button>' +
-                                '<span class="qty-num" id="qty-' + p.id + '">' + (selectedQty[p.id] || 0) + '</span>' +
-                                '<button class="qty-btn" onclick="changeQty(\'' + p.id + '\', 1)" ' + (!canAdd ? 'disabled' : '') + '>+</button>' +
+                            '<button class="exchange-btn" onclick="startLottery(\'' + p.id + '\')" ' + (!canAdd ? 'disabled' : '') + '>' + (isLocked ? '已达上限' : '抽奖') + '</button>' +
+                            '</div>';
+                    }
+
+                    // 免费可乐
+                    if (p.name === '【免费】可口可乐600mL1瓶') {
+                        return '<div class="prize-item">' +
+                            '<div class="prize-info">' +
+                                '<div class="prize-name">' + p.name + '</div>' +
+                                '<div class="prize-cost">免费</div>' +
+                                '<div class="prize-stock">' + stockText + '</div>' +
+                                '<div class="prize-rules">' + rulesText + '</div>' +
+                                discountBadge + extraRemark +
                             '</div>' +
                             '<button class="exchange-btn" onclick="exchangePrize(\'' + p.id + '\')" ' + (!canAdd ? 'disabled' : '') + '>' + (isLocked ? '已达上限' : '兑换') + '</button>' +
                             '</div>';
-                    }).join('');
-                } else {
-                    container.innerHTML = '<div class="empty">暂无奖品</div>';
-                }
-            } catch (e) {
-                console.error('加载奖品失败:', e);
-                container.innerHTML = '<div class="empty">加载奖品失败</div>';
-            }
-        }
-
-        function changeQty(prizeId, delta) {
-            var current = selectedQty[prizeId] || 0;
-            var newQty = current + delta;
-            if (newQty < 0) newQty = 0;
-            selectedQty[prizeId] = newQty;
-            document.getElementById('qty-' + prizeId).textContent = newQty;
-        }
-
-        async function exchangePrize(prizeId) {
-            if (!currentUser) return;
-            var quantity = selectedQty[prizeId] || 0;
-            if (quantity < 1) { alert('请选择兑换数量'); return; }
-            if (!confirm('确定兑换该奖品吗？数量：' + quantity)) return;
-            try {
-                var data = await apiFetch('/rest/v1/rpc/exchange_prize', {
-                    method: 'POST',
-                    body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId, p_quantity: quantity })
-                });
-                if (data && data.success) {
-                    alert('兑换成功！');
-                    currentUser.points -= data.total_cost;
-                    document.getElementById('pointsDisplay').textContent = currentUser.points;
-                    updatePointsDisplay();
-                    selectedQty[prizeId] = 0;
-                    document.getElementById('qty-' + prizeId).textContent = '0';
-                    loadPrizes();
-                    loadRecords();
-                    if (isAdmin()) loadNotices();
-                } else {
-                    alert(data.msg || '兑换失败');
-                }
-            } catch (e) {
-                console.error('兑换失败:', e);
-                alert('兑换失败，请重试');
-            }
-        }
-
-        async function startLottery(prizeId) {
-            if (!currentUser) return;
-            if (!confirm('确定花费10积分参与超级加倍抽奖吗？')) return;
-            try {
-                var data = await apiFetch('/rest/v1/rpc/exchange_lottery', {
-                    method: 'POST',
-                    body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId })
-                });
-                if (data && data.success) {
-                    var resultText = data.multiplier === 1.5 ? '翻1.5倍' : '翻3.5倍';
-                    document.getElementById('lotteryResult').textContent = resultText;
-                    document.getElementById('lotteryPopup').classList.remove('hidden');
-                    currentUser.points -= 10;
-                    document.getElementById('pointsDisplay').textContent = currentUser.points;
-                    updatePointsDisplay();
-                    loadPrizes();
-                    loadRecords();
-                    if (isAdmin()) loadNotices();
-                } else {
-                    alert(data.msg || '抽奖失败');
-                }
-            } catch (e) {
-                console.error('抽奖失败:', e);
-                alert('抽奖失败，请重试');
-            }
-        }
-
-        function closeLotteryPopup() {
-            document.getElementById('lotteryPopup').classList.add('hidden');
-        }
-
-        async function loadRecords() {
-            var container = document.getElementById('recordList');
-            if (!currentUser) return;
-            container.innerHTML = '<div class="loading">加载中...</div>';
-            try {
-                var data = await apiFetch('/rest/v1/exchanges?user_id=eq.' + currentUser.id + '&select=*&order=created_at.desc');
-                if (Array.isArray(data) && data.length > 0) {
-                    container.innerHTML = data.map(function(r) {
-                        return '<div class="record-item">' +
-                            '<div class="record-info">' +
-                                '<div class="record-name">' + r.prize_name + ' x' + r.quantity + '</div>' +
-                                '<div class="record-time">' + new Date(r.created_at).toLocaleString() + '</div>' +
-                            '</div>' +
-                            '<div class="record-right">' +
-                                '<div class="record-cost">-' + r.total_cost + ' 积分</div>' +
-                                '<span class="record-status">' + r.status + '</span>' +
-                                '<button class="delete-btn" onclick="deleteExchange(\'' + r.id + '\')">删除</button>' +
-                            '</div>' +
-                            '</div>';
-                    }).join('');
-                } else {
-                    container.innerHTML = '<div class="empty">暂无兑换记录</div>';
-                }
-            } catch (e) {
-                container.innerHTML = '<div class="empty">加载记录失败</div>';
-            }
-        }
-
-        async function deleteExchange(exchangeId) {
-            if (!currentUser) return;
-            try {
-                await apiFetch('/rest/v1/exchanges?id=eq.' + exchangeId, {
-                    method: 'DELETE'
-                });
-                loadRecords();
-                if (isAdmin()) loadNotices();
-                loadPrizes();
-            } catch (e) {
-                console.error('删除记录失败:', e);
-                alert('删除失败，请重试');
-            }
-        }
-
-        async function clearAllExchanges() {
-            if (!currentUser) return;
-            if (!confirm('确定清除你的所有兑换记录吗？')) return;
-            try {
-                await apiFetch('/rest/v1/exchanges?user_id=eq.' + currentUser.id, { method: 'DELETE' });
-                loadRecords();
-                if (isAdmin()) loadNotices();
-                loadPrizes();
-            } catch (e) {
-                console.error('清除记录失败:', e);
-                alert('清除失败，请重试');
-            }
-        }
-
-        async function loadNotices() {
-            var container = document.getElementById('noticeBox');
-            if (!container) return;
-            container.innerHTML = '<div class="loading">加载中...</div>';
-            try {
-                var data = await apiFetch('/rest/v1/exchanges?select=*&order=created_at.desc&limit=20');
-                if (Array.isArray(data) && data.length > 0) {
-                    container.innerHTML = data.map(function(n) {
-                        return '<div class="notice-item">【' +
-                            new Date(n.created_at).toLocaleString() + '】' +
-                            n.prize_name + ' x' + n.quantity + '，消耗' + n.total_cost + '积分</div>';
-                    }).join('');
-                } else {
-                    container.innerHTML = '<div class="empty">暂无兑换请求</div>';
-                }
-            } catch (e) {
-                container.innerHTML = '<div class="empty">加载通知失败</div>';
-            }
-        }
-
-        async function loadCupInfo() {
-            var container = document.getElementById('cupInfoContainer');
-            container.innerHTML = '<div class="loading">加载中...</div>';
-
-            var isAdminUser = isAdmin();
-            var adminNotice = document.getElementById('adminNotice');
-            if (isAdminUser) {
-                adminNotice.style.display = 'block';
-            } else {
-                adminNotice.style.display = 'none';
-            }
-
-            try {
-                if (isAdminUser) {
-                    var data = await apiFetch('/rest/v1/rpc/get_player_stats');
-                    if (Array.isArray(data) && data.length > 0) {
-                        data.sort(function(a, b) {
-                            var aIsSsy = (a.name === '良乡上行两道通过' || a.name === '盛思源');
-                            var bIsSsy = (b.name === '良乡上行两道通过' || b.name === '盛思源');
-                            if (aIsSsy && !bIsSsy) return -1;
-                            if (!aIsSsy && bIsSsy) return 1;
-                            return 0;
-                        });
-                        var html = '<div class="player-stats">';
-                        data.forEach(function(stat) {
-                            var name = stat.name;
-                            if (name === '良乡上行两道通过') name = '盛思源';
-                            var champLabel = stat.champion >= 3 ? 'champion-label gold' : '';
-                            var champNum = stat.champion >= 3 ? 'champion-number red' : '';
-                            var runnerLabel = stat.runner_up >= 3 ? 'runner-label silver' : '';
-                            var runnerNum = stat.runner_up >= 3 ? 'runner-number yellow' : '';
-                            var thirdLabel = stat.third_place >= 3 ? 'third-label copper' : '';
-                            var gb = stat.golden_ball > 2 ? 'award-gold' : '';
-                            var gboot = stat.golden_boot > 2 ? 'award-gold' : '';
-                            var bg = stat.best_goal > 2 ? 'award-gold' : '';
-
-                            html += '<div class="player-card">' +
-                                '<div class="player-name">' + name + '</div>' +
-                                '<div class="row-champion-runner">' +
-                                    '<div class="stat-item"><div class="stat-number ' + champNum + '">' + stat.champion + '</div><div class="stat-label ' + champLabel + '">冠军</div></div>' +
-                                    '<div class="stat-item"><div class="stat-number ' + runnerNum + '">' + stat.runner_up + '</div><div class="stat-label ' + runnerLabel + '">亚军</div></div>' +
-                                '</div>' +
-                                '<div class="row-third-golden-boot">' +
-                                    '<div class="stat-item"><div class="stat-number">' + stat.third_place + '</div><div class="stat-label ' + thirdLabel + '">季军</div></div>' +
-                                    '<div class="stat-item ' + gb + '"><div class="stat-number">' + stat.golden_ball + '</div><div class="stat-label">金球奖</div></div>' +
-                                    '<div class="stat-item ' + gboot + '"><div class="stat-number">' + stat.golden_boot + '</div><div class="stat-label">金靴奖</div></div>' +
-                                '</div>' +
-                                '<div class="row-best-goal">' +
-                                    '<div class="stat-item ' + bg + '"><div class="stat-number">' + stat.best_goal + '</div><div class="stat-label">最佳进球</div></div>' +
-                                '</div>' +
-                            '</div>';
-                        });
-                        html += '</div>';
-                        container.innerHTML = html;
-                    } else {
-                        container.innerHTML = '<div class="empty">暂无数据</div>';
                     }
-                } else {
-                    var userData = await apiFetch('/rest/v1/player_stats?select=*&user_id=eq.' + currentUser.id);
-                    if (Array.isArray(userData) && userData.length > 0) {
-                        var stat = userData[0];
-                        var name = currentUser.name;
+
+                    // 普通商品
+                    return '<div class="prize-item">' +
+                        '<div class="prize-info">' +
+                            '<div class="prize-name">' + p.name + '</div>' +
+                            '<div class="prize-cost">' + p.cost + ' 积分</div>' +
+                            '<div class="prize-stock">' + stockText + '</div>' +
+                            '<div class="prize-rules">' + rulesText + '</div>' +
+                            discountBadge + extraRemark +
+                        '</div>' +
+                        '<div class="quantity-selector">' +
+                            '<button class="qty-btn" onclick="changeQty(\'' + p.id + '\', -1)" ' + (!canAdd ? 'disabled' : '') + '>−</button>' +
+                            '<span class="qty-num" id="qty-' + p.id + '">' + (selectedQty[p.id] || 0) + '</span>' +
+                            '<button class="qty-btn" onclick="changeQty(\'' + p.id + '\', 1)" ' + (!canAdd ? 'disabled' : '') + '>+</button>' +
+                        '</div>' +
+                        '<button class="exchange-btn" onclick="exchangePrize(\'' + p.id + '\')" ' + (!canAdd ? 'disabled' : '') + '>' + (isLocked ? '已达上限' : '兑换') + '</button>' +
+                        '</div>';
+                }).join('');
+            } else {
+                container.innerHTML = '<div class="empty">暂无奖品</div>';
+            }
+        } catch (e) {
+            console.error('加载奖品失败:', e);
+            container.innerHTML = '<div class="empty">加载奖品失败</div>';
+        }
+    }
+
+    function changeQty(prizeId, delta) {
+        var current = selectedQty[prizeId] || 0;
+        var newQty = current + delta;
+        if (newQty < 0) newQty = 0;
+        selectedQty[prizeId] = newQty;
+        var el = document.getElementById('qty-' + prizeId);
+        if (el) el.textContent = newQty;
+    }
+
+    async function exchangePrize(prizeId) {
+        if (!currentUser) return;
+        var quantity = selectedQty[prizeId] || 0;
+        if (quantity < 1) { showModal('请选择兑换数量'); return; }
+        if (!confirm('确定兑换该奖品吗？数量：' + quantity)) return;
+        try {
+            var data = await apiFetch('/rest/v1/rpc/exchange_prize', {
+                method: 'POST',
+                body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId, p_quantity: quantity })
+            });
+            if (data && data.success) {
+                showModal('兑换成功！');
+                currentUser.points -= data.total_cost;
+                document.getElementById('pointsDisplay').textContent = currentUser.points;
+                updatePointsDisplay();
+                selectedQty[prizeId] = 0;
+                var el = document.getElementById('qty-' + prizeId);
+                if (el) el.textContent = '0';
+                loadPrizes();
+                loadRecords();
+                if (isAdmin()) loadNotices();
+            } else {
+                showModal(data.msg || '兑换失败');
+            }
+        } catch (e) {
+            console.error('兑换失败:', e);
+            showModal('兑换失败，请重试');
+        }
+    }
+
+    async function startLottery(prizeId) {
+        if (!currentUser) return;
+        if (!confirm('确定花费10积分参与超级加倍抽奖吗？')) return;
+        try {
+            var data = await apiFetch('/rest/v1/rpc/exchange_lottery', {
+                method: 'POST',
+                body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId })
+            });
+            if (data && data.success) {
+                var resultText = data.multiplier === 1.5 ? '翻1.5倍' : '翻3.5倍';
+                showModal('恭喜你获得：' + resultText + '！');
+                currentUser.points -= 10;
+                document.getElementById('pointsDisplay').textContent = currentUser.points;
+                updatePointsDisplay();
+                loadPrizes();
+                loadRecords();
+                if (isAdmin()) loadNotices();
+            } else {
+                showModal(data.msg || '抽奖失败');
+            }
+        } catch (e) {
+            console.error('抽奖失败:', e);
+            showModal('抽奖失败，请重试');
+        }
+    }
+
+    async function loadRecords() {
+        var container = document.getElementById('recordList');
+        if (!currentUser) return;
+        container.innerHTML = '<div class="loading">加载中...</div>';
+        try {
+            var data = await apiFetch('/rest/v1/exchanges?user_id=eq.' + currentUser.id + '&select=*&order=created_at.desc');
+            if (Array.isArray(data) && data.length > 0) {
+                container.innerHTML = data.map(function(r) {
+                    return '<div class="record-item">' +
+                        '<div class="record-info">' +
+                            '<div class="record-name">' + r.prize_name + ' x' + r.quantity + '</div>' +
+                            '<div class="record-time">' + new Date(r.created_at).toLocaleString() + '</div>' +
+                        '</div>' +
+                        '<div class="record-right">' +
+                            '<div class="record-cost">-' + r.total_cost + ' 积分</div>' +
+                            '<span class="record-status">' + r.status + '</span>' +
+                            '<button class="delete-btn" onclick="deleteExchange(\'' + r.id + '\')">删除</button>' +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+            } else {
+                container.innerHTML = '<div class="empty">暂无兑换记录</div>';
+            }
+        } catch (e) {
+            container.innerHTML = '<div class="empty">加载记录失败</div>';
+        }
+    }
+
+    async function deleteExchange(exchangeId) {
+        if (!currentUser) return;
+        try {
+            await apiFetch('/rest/v1/exchanges?id=eq.' + exchangeId, { method: 'DELETE' });
+            loadRecords();
+            if (isAdmin()) loadNotices();
+            loadPrizes();
+        } catch (e) {
+            console.error('删除记录失败:', e);
+            showModal('删除失败，请重试');
+        }
+    }
+
+    async function clearAllExchanges() {
+        if (!currentUser) return;
+        if (!confirm('确定清除你的所有兑换记录吗？')) return;
+        try {
+            await apiFetch('/rest/v1/exchanges?user_id=eq.' + currentUser.id, { method: 'DELETE' });
+            loadRecords();
+            if (isAdmin()) loadNotices();
+            loadPrizes();
+        } catch (e) {
+            console.error('清除记录失败:', e);
+            showModal('清除失败，请重试');
+        }
+    }
+
+    async function loadNotices() {
+        var container = document.getElementById('noticeBox');
+        if (!container) return;
+        container.innerHTML = '<div class="loading">加载中...</div>';
+        try {
+            var data = await apiFetch('/rest/v1/exchanges?select=*&order=created_at.desc&limit=20');
+            if (Array.isArray(data) && data.length > 0) {
+                container.innerHTML = data.map(function(n) {
+                    return '<div class="notice-item">【' +
+                        new Date(n.created_at).toLocaleString() + '】' +
+                        n.prize_name + ' x' + n.quantity + '，消耗' + n.total_cost + '积分</div>';
+                }).join('');
+            } else {
+                container.innerHTML = '<div class="empty">暂无兑换请求</div>';
+            }
+        } catch (e) {
+            container.innerHTML = '<div class="empty">加载通知失败</div>';
+        }
+    }
+
+    async function loadCupInfo() {
+        var container = document.getElementById('cupInfoContainer');
+        container.innerHTML = '<div class="loading">加载中...</div>';
+        var isAdminUser = isAdmin();
+        var adminNotice = document.getElementById('adminNotice');
+        if (isAdminUser) {
+            adminNotice.style.display = 'block';
+        } else {
+            adminNotice.style.display = 'none';
+        }
+        try {
+            if (isAdminUser) {
+                var data = await apiFetch('/rest/v1/rpc/get_player_stats');
+                if (Array.isArray(data) && data.length > 0) {
+                    data.sort(function(a, b) {
+                        var aIsSsy = (a.name === '良乡上行两道通过' || a.name === '盛思源');
+                        var bIsSsy = (b.name === '良乡上行两道通过' || b.name === '盛思源');
+                        if (aIsSsy && !bIsSsy) return -1;
+                        if (!aIsSsy && bIsSsy) return 1;
+                        return 0;
+                    });
+                    var html = '<div class="player-stats">';
+                    data.forEach(function(stat) {
+                        var name = stat.name;
                         if (name === '良乡上行两道通过') name = '盛思源';
                         var champLabel = stat.champion >= 3 ? 'champion-label gold' : '';
                         var champNum = stat.champion >= 3 ? 'champion-number red' : '';
@@ -939,8 +767,7 @@
                         var gb = stat.golden_ball > 2 ? 'award-gold' : '';
                         var gboot = stat.golden_boot > 2 ? 'award-gold' : '';
                         var bg = stat.best_goal > 2 ? 'award-gold' : '';
-
-                        container.innerHTML = '<div class="player-stats"><div class="player-card">' +
+                        html += '<div class="player-card">' +
                             '<div class="player-name">' + name + '</div>' +
                             '<div class="row-champion-runner">' +
                                 '<div class="stat-item"><div class="stat-number ' + champNum + '">' + stat.champion + '</div><div class="stat-label ' + champLabel + '">冠军</div></div>' +
@@ -954,29 +781,203 @@
                             '<div class="row-best-goal">' +
                                 '<div class="stat-item ' + bg + '"><div class="stat-number">' + stat.best_goal + '</div><div class="stat-label">最佳进球</div></div>' +
                             '</div>' +
-                        '</div></div>';
-                    } else {
-                        container.innerHTML = '<div class="empty">你还没有战绩记录</div>';
-                    }
+                        '</div>';
+                    });
+                    html += '</div>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<div class="empty">暂无数据</div>';
+                }
+            } else {
+                var userData = await apiFetch('/rest/v1/player_stats?select=*&user_id=eq.' + currentUser.id);
+                if (Array.isArray(userData) && userData.length > 0) {
+                    var stat = userData[0];
+                    var name = currentUser.name;
+                    if (name === '良乡上行两道通过') name = '盛思源';
+                    var champLabel = stat.champion >= 3 ? 'champion-label gold' : '';
+                    var champNum = stat.champion >= 3 ? 'champion-number red' : '';
+                    var runnerLabel = stat.runner_up >= 3 ? 'runner-label silver' : '';
+                    var runnerNum = stat.runner_up >= 3 ? 'runner-number yellow' : '';
+                    var thirdLabel = stat.third_place >= 3 ? 'third-label copper' : '';
+                    var gb = stat.golden_ball > 2 ? 'award-gold' : '';
+                    var gboot = stat.golden_boot > 2 ? 'award-gold' : '';
+                    var bg = stat.best_goal > 2 ? 'award-gold' : '';
+                    container.innerHTML = '<div class="player-stats"><div class="player-card">' +
+                        '<div class="player-name">' + name + '</div>' +
+                        '<div class="row-champion-runner">' +
+                            '<div class="stat-item"><div class="stat-number ' + champNum + '">' + stat.champion + '</div><div class="stat-label ' + champLabel + '">冠军</div></div>' +
+                            '<div class="stat-item"><div class="stat-number ' + runnerNum + '">' + stat.runner_up + '</div><div class="stat-label ' + runnerLabel + '">亚军</div></div>' +
+                        '</div>' +
+                        '<div class="row-third-golden-boot">' +
+                            '<div class="stat-item"><div class="stat-number">' + stat.third_place + '</div><div class="stat-label ' + thirdLabel + '">季军</div></div>' +
+                            '<div class="stat-item ' + gb + '"><div class="stat-number">' + stat.golden_ball + '</div><div class="stat-label">金球奖</div></div>' +
+                            '<div class="stat-item ' + gboot + '"><div class="stat-number">' + stat.golden_boot + '</div><div class="stat-label">金靴奖</div></div>' +
+                        '</div>' +
+                        '<div class="row-best-goal">' +
+                            '<div class="stat-item ' + bg + '"><div class="stat-number">' + stat.best_goal + '</div><div class="stat-label">最佳进球</div></div>' +
+                        '</div>' +
+                    '</div></div>';
+                } else {
+                    container.innerHTML = '<div class="empty">你还没有战绩记录</div>';
+                }
+            }
+        } catch (e) {
+            console.error('加载杯赛情况失败:', e);
+            container.innerHTML = '<div class="empty">加载失败</div>';
+        }
+    }
+
+    async function changeAccountAndName() {
+        var newAccount = document.getElementById('newAccountInput').value.trim();
+        var newName = document.getElementById('newNameInput').value.trim();
+        if (!newAccount && !newName) { showModal('请输入新登录名或新用户名'); return; }
+        if (newAccount) {
+            try {
+                var accountData = await apiFetch('/rest/v1/rpc/update_account', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_user_id: currentUser.id, p_new_account: newAccount })
+                });
+                if (accountData && accountData.success) {
+                    currentUser.account = accountData.new_account || newAccount;
+                    document.getElementById('newAccountInput').value = '';
+                } else {
+                    showModal(accountData.msg || '修改登录名失败');
+                    return;
                 }
             } catch (e) {
-                console.error('加载杯赛情况失败:', e);
-                container.innerHTML = '<div class="empty">加载失败，请检查控制台错误</div>';
+                console.error(e);
+                showModal('修改登录名失败，请重试');
+                return;
             }
         }
-
-        function loadAll() {
-            loadPrizes();
-            loadRecords();
-            loadNews();
-            if (isAdmin()) loadNotices();
+        if (newName) {
+            try {
+                var nameData = await apiFetch('/rest/v1/rpc/update_name', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_user_id: currentUser.id, p_new_name: newName })
+                });
+                if (nameData && nameData.success) {
+                    currentUser.name = nameData.new_name || newName;
+                    document.getElementById('greetingText').textContent = '你好，' + currentUser.name;
+                    document.getElementById('newNameInput').value = '';
+                } else {
+                    showModal(nameData.msg || '修改用户名失败');
+                    return;
+                }
+            } catch (e) {
+                console.error(e);
+                showModal('修改用户名失败，请重试');
+                return;
+            }
         }
+        showModal('账号信息修改成功');
+    }
 
-        window.addEventListener('load', function() {
-            closeModal('passwordModal');
-            closeModal('deleteAccountModal');
-            closeModal('switchAccountModal');
-        });
-    </script>
+    function openPasswordModal() {
+        document.getElementById('oldPasswordInput').value = '';
+        document.getElementById('newPasswordInput').value = '';
+        document.getElementById('confirmPasswordInput').value = '';
+        document.getElementById('passwordModal').classList.remove('hidden');
+    }
+
+    async function submitPasswordChange() {
+        var oldPassword = document.getElementById('oldPasswordInput').value.trim();
+        var newPassword = document.getElementById('newPasswordInput').value.trim();
+        var confirmPassword = document.getElementById('confirmPasswordInput').value.trim();
+        if (!oldPassword || !newPassword || !confirmPassword) { showModal('请填写所有密码字段'); return; }
+        if (newPassword !== confirmPassword) { showModal('两次输入的新密码不一致'); return; }
+        try {
+            var data = await apiFetch('/rest/v1/rpc/update_password', {
+                method: 'POST',
+                body: JSON.stringify({ p_user_id: currentUser.id, p_old_password: oldPassword, p_new_password: newPassword })
+            });
+            if (data && data.success) {
+                showModal('密码修改成功，请重新登录');
+                closeModal('passwordModal');
+                logoutUser();
+            } else {
+                showModal(data.msg || '修改失败');
+            }
+        } catch (e) {
+            console.error(e);
+            showModal('修改失败，请重试');
+        }
+    }
+
+    function openDeleteAccountModal() {
+        document.getElementById('deletePasswordInput').value = '';
+        document.getElementById('deleteWarning').style.display = 'none';
+        document.getElementById('deleteAccountModal').classList.remove('hidden');
+    }
+
+    document.getElementById('deletePasswordInput').addEventListener('input', function() {
+        if (this.value.trim().length > 0) {
+            document.getElementById('deleteWarning').style.display = 'block';
+        } else {
+            document.getElementById('deleteWarning').style.display = 'none';
+        }
+    });
+
+    async function submitDeleteAccount() {
+        var password = document.getElementById('deletePasswordInput').value.trim();
+        if (!password) { showModal('请输入密码'); return; }
+        try {
+            var data = await apiFetch('/rest/v1/rpc/delete_user', {
+                method: 'POST',
+                body: JSON.stringify({ p_user_id: currentUser.id, p_password: password })
+            });
+            if (data && data.success) {
+                showModal('账号已注销');
+                closeModal('deleteAccountModal');
+                logoutUser();
+            } else {
+                showModal(data.msg || '密码错误');
+            }
+        } catch (e) {
+            console.error(e);
+            showModal('注销失败，请重试');
+        }
+    }
+
+    function openSwitchAccountModal() {
+        document.getElementById('switchAccountInput').value = '';
+        document.getElementById('switchAccountModal').classList.remove('hidden');
+    }
+
+    async function submitSwitchAccount() {
+        var newAccount = document.getElementById('switchAccountInput').value.trim();
+        if (!newAccount) { showModal('请输入新登录名'); return; }
+        try {
+            var data = await apiFetch('/rest/v1/rpc/update_account', {
+                method: 'POST',
+                body: JSON.stringify({ p_user_id: currentUser.id, p_new_account: newAccount })
+            });
+            if (data && data.success) {
+                currentUser.account = data.new_account || newAccount;
+                closeModal('switchAccountModal');
+                showModal('切换账号成功，下次登录请使用新账号');
+            } else {
+                showModal(data.msg || '切换失败，已保留原账号');
+            }
+        } catch (e) {
+            console.error(e);
+            showModal('切换失败，已保留原账号');
+        }
+    }
+
+    function loadAll() {
+        loadPrizes();
+        loadRecords();
+        loadNews();
+        if (isAdmin()) loadNotices();
+    }
+
+    window.addEventListener('load', function() {
+        closeModal('passwordModal');
+        closeModal('deleteAccountModal');
+        closeModal('switchAccountModal');
+        closeModal('alertModal');
+    });
+</script>
 </body>
 </html>
