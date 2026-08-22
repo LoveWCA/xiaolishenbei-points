@@ -239,6 +239,17 @@
     </div>
 </div>
 
+<!-- 自定义确认弹窗 -->
+<div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal">
+        <p id="confirmText"></p>
+        <div>
+            <button onclick="confirmYes()">确定</button>
+            <button onclick="confirmNo()">取消</button>
+        </div>
+    </div>
+</div>
+
 <!-- 修改密码模态框 -->
 <div id="passwordModal" class="modal-overlay hidden">
     <div class="modal" style="text-align:left;">
@@ -286,6 +297,8 @@
 
     var ADMIN_ACCOUNTS = ['1', 'shengsiyuan'];
 
+    let confirmCallback = null;
+
     function getHeaders() {
         return {
             'apikey': SUPABASE_ANON_KEY,
@@ -314,6 +327,23 @@
     function showModal(text) {
         document.getElementById('alertText').textContent = text;
         document.getElementById('alertModal').classList.remove('hidden');
+    }
+
+    function showConfirm(text, callback) {
+        document.getElementById('confirmText').textContent = text;
+        document.getElementById('confirmModal').classList.remove('hidden');
+        confirmCallback = callback;
+    }
+
+    function confirmYes() {
+        closeModal('confirmModal');
+        if (confirmCallback) confirmCallback();
+        confirmCallback = null;
+    }
+
+    function confirmNo() {
+        closeModal('confirmModal');
+        confirmCallback = null;
     }
 
     function closeModal(modalId) {
@@ -359,7 +389,6 @@
             });
             if (data && data.success) {
                 currentUser = { id: data.user_id, name: data.name, points: data.points, account: account };
-                // 静默检查积分失效
                 await silentlyExpirePoints();
                 showMainSection();
             } else {
@@ -491,7 +520,7 @@
         }
     }
 
-    // 加载用户兑换记录
+    // 加载用户兑换情况
     async function loadUserUsage() {
         if (!currentUser) return;
         try {
@@ -602,60 +631,62 @@
         if (el) el.textContent = newQty;
     }
 
-    async function exchangePrize(prizeId) {
+    function exchangePrize(prizeId) {
         if (!currentUser) return;
         var quantity = selectedQty[prizeId] || 0;
         if (quantity < 1) { showModal('请选择兑换数量'); return; }
-        if (!confirm('确定兑换该奖品吗？数量：' + quantity)) return;
-        try {
-            var data = await apiFetch('/rest/v1/rpc/exchange_prize', {
-                method: 'POST',
-                body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId, p_quantity: quantity })
-            });
-            if (data && data.success) {
-                showModal('兑换成功！');
-                currentUser.points -= data.total_cost;
-                document.getElementById('pointsDisplay').textContent = currentUser.points;
-                updatePointsDisplay();
-                selectedQty[prizeId] = 0;
-                var el = document.getElementById('qty-' + prizeId);
-                if (el) el.textContent = '0';
-                loadPrizes();
-                loadRecords();
-                if (isAdmin()) loadNotices();
-            } else {
-                showModal(data.msg || '兑换失败');
+        showConfirm('确定兑换该奖品吗？数量：' + quantity, async () => {
+            try {
+                var data = await apiFetch('/rest/v1/rpc/exchange_prize', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId, p_quantity: quantity })
+                });
+                if (data && data.success) {
+                    showModal('兑换成功！');
+                    currentUser.points -= data.total_cost;
+                    document.getElementById('pointsDisplay').textContent = currentUser.points;
+                    updatePointsDisplay();
+                    selectedQty[prizeId] = 0;
+                    var el = document.getElementById('qty-' + prizeId);
+                    if (el) el.textContent = '0';
+                    loadPrizes();
+                    loadRecords();
+                    if (isAdmin()) loadNotices();
+                } else {
+                    showModal(data.msg || '兑换失败');
+                }
+            } catch (e) {
+                console.error('兑换失败:', e);
+                showModal('兑换失败，请重试');
             }
-        } catch (e) {
-            console.error('兑换失败:', e);
-            showModal('兑换失败，请重试');
-        }
+        });
     }
 
-    async function startLottery(prizeId) {
+    function startLottery(prizeId) {
         if (!currentUser) return;
-        if (!confirm('确定花费10积分参与超级加倍抽奖吗？')) return;
-        try {
-            var data = await apiFetch('/rest/v1/rpc/exchange_lottery', {
-                method: 'POST',
-                body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId })
-            });
-            if (data && data.success) {
-                var resultText = data.multiplier === 1.5 ? '翻1.5倍' : '翻3.5倍';
-                showModal('恭喜你获得：' + resultText + '！');
-                currentUser.points -= 10;
-                document.getElementById('pointsDisplay').textContent = currentUser.points;
-                updatePointsDisplay();
-                loadPrizes();
-                loadRecords();
-                if (isAdmin()) loadNotices();
-            } else {
-                showModal(data.msg || '抽奖失败');
+        showConfirm('确定花费10积分参与超级加倍抽奖吗？', async () => {
+            try {
+                var data = await apiFetch('/rest/v1/rpc/exchange_lottery', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId })
+                });
+                if (data && data.success) {
+                    var resultText = data.multiplier === 1.5 ? '翻1.5倍' : '翻3.5倍';
+                    showModal('恭喜你获得：' + resultText + '！');
+                    currentUser.points -= 10;
+                    document.getElementById('pointsDisplay').textContent = currentUser.points;
+                    updatePointsDisplay();
+                    loadPrizes();
+                    loadRecords();
+                    if (isAdmin()) loadNotices();
+                } else {
+                    showModal(data.msg || '抽奖失败');
+                }
+            } catch (e) {
+                console.error('抽奖失败:', e);
+                showModal('抽奖失败，请重试');
             }
-        } catch (e) {
-            console.error('抽奖失败:', e);
-            showModal('抽奖失败，请重试');
-        }
+        });
     }
 
     async function loadRecords() {
@@ -686,31 +717,34 @@
         }
     }
 
-    async function deleteExchange(exchangeId) {
+    function deleteExchange(exchangeId) {
         if (!currentUser) return;
-        try {
-            await apiFetch('/rest/v1/exchanges?id=eq.' + exchangeId, { method: 'DELETE' });
-            loadRecords();
-            if (isAdmin()) loadNotices();
-            loadPrizes();
-        } catch (e) {
-            console.error('删除记录失败:', e);
-            showModal('删除失败，请重试');
-        }
+        showConfirm('确定删除这条兑换记录吗？', async () => {
+            try {
+                await apiFetch('/rest/v1/exchanges?id=eq.' + exchangeId, { method: 'DELETE' });
+                loadRecords();
+                if (isAdmin()) loadNotices();
+                loadPrizes();
+            } catch (e) {
+                console.error('删除记录失败:', e);
+                showModal('删除失败，请重试');
+            }
+        });
     }
 
-    async function clearAllExchanges() {
+    function clearAllExchanges() {
         if (!currentUser) return;
-        if (!confirm('确定清除你的所有兑换记录吗？')) return;
-        try {
-            await apiFetch('/rest/v1/exchanges?user_id=eq.' + currentUser.id, { method: 'DELETE' });
-            loadRecords();
-            if (isAdmin()) loadNotices();
-            loadPrizes();
-        } catch (e) {
-            console.error('清除记录失败:', e);
-            showModal('清除失败，请重试');
-        }
+        showConfirm('确定清除你的所有兑换记录吗？', async () => {
+            try {
+                await apiFetch('/rest/v1/exchanges?user_id=eq.' + currentUser.id, { method: 'DELETE' });
+                loadRecords();
+                if (isAdmin()) loadNotices();
+                loadPrizes();
+            } catch (e) {
+                console.error('清除记录失败:', e);
+                showModal('清除失败，请重试');
+            }
+        });
     }
 
     async function loadNotices() {
@@ -917,25 +951,27 @@
         }
     });
 
-    async function submitDeleteAccount() {
+    function submitDeleteAccount() {
         var password = document.getElementById('deletePasswordInput').value.trim();
         if (!password) { showModal('请输入密码'); return; }
-        try {
-            var data = await apiFetch('/rest/v1/rpc/delete_user', {
-                method: 'POST',
-                body: JSON.stringify({ p_user_id: currentUser.id, p_password: password })
-            });
-            if (data && data.success) {
-                showModal('账号已注销');
-                closeModal('deleteAccountModal');
-                logoutUser();
-            } else {
-                showModal(data.msg || '密码错误');
+        showConfirm('确定注销账号吗？', async () => {
+            try {
+                var data = await apiFetch('/rest/v1/rpc/delete_user', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_user_id: currentUser.id, p_password: password })
+                });
+                if (data && data.success) {
+                    showModal('账号已注销');
+                    closeModal('deleteAccountModal');
+                    logoutUser();
+                } else {
+                    showModal(data.msg || '密码错误');
+                }
+            } catch (e) {
+                console.error(e);
+                showModal('注销失败，请重试');
             }
-        } catch (e) {
-            console.error(e);
-            showModal('注销失败，请重试');
-        }
+        });
     }
 
     function openSwitchAccountModal() {
@@ -976,6 +1012,7 @@
         closeModal('deleteAccountModal');
         closeModal('switchAccountModal');
         closeModal('alertModal');
+        closeModal('confirmModal');
     });
 </script>
 </body>
