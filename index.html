@@ -10,11 +10,11 @@
         .container { background: #fff; border: 1px solid #000; padding: 20px; }
         .login-box { margin-bottom: 20px; }
         .login-box h3 { margin-bottom: 10px; font-weight: 600; color: #000; }
-        input, .modal input, textarea { width: 100%; padding: 10px 0; margin-bottom: 15px; border: none; border-bottom: 1px solid #000; background: transparent; color: #000; font-size: 16px; outline: none; resize: vertical; }
+        input, textarea { width: 100%; padding: 10px 0; margin-bottom: 15px; border: none; border-bottom: 1px solid #000; background: transparent; color: #000; font-size: 16px; outline: none; resize: vertical; }
         button { background: #fff; color: #000; border: 1px solid #000; padding: 8px 16px; font-size: 14px; cursor: pointer; }
         button:hover { background: #f0f0f0; }
-        .danger-btn, .delete-btn, .modal-btn.danger { background: #fff; color: #ff4444; border-color: #ff4444; }
-        .danger-btn:hover, .delete-btn:hover, .modal-btn.danger:hover { background: #ff4444; color: #fff; }
+        .danger-btn, .delete-btn { background: #fff; color: #ff4444; border-color: #ff4444; }
+        .danger-btn:hover, .delete-btn:hover { background: #ff4444; color: #fff; }
         .login-box button, .account-box button { width: 100%; padding: 10px; font-size: 16px; }
         .qty-btn { width: 30px; height: 30px; padding: 0; font-size: 18px; line-height: 1; }
         .hidden { display: none; }
@@ -90,10 +90,11 @@
         /* 技能站按钮 */
         .skills-btn { width: 100%; margin-bottom: 10px; background: #fff; color: #000; border: 1px solid #000; padding: 10px; font-size: 16px; cursor: pointer; }
         .skills-btn:hover { background: #f0f0f0; }
-        /* 通用弹窗 */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal { background: #fff; border: 1px solid #000; padding: 20px; width: 90%; max-width: 400px; text-align: center; }
-        .modal p { font-size: 16px; margin-bottom: 15px; }
+        /* Toast 通知条 */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 90%; max-width: 400px; }
+        .toast { background: #fff; border: 1px solid #000; padding: 10px 15px; margin-bottom: 8px; font-size: 14px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .toast.success { border-left: 4px solid green; }
+        .toast.error { border-left: 4px solid red; }
         @media (max-width: 600px) {
             body { padding: 10px; }
             .container { padding: 15px; }
@@ -118,8 +119,8 @@
     <div id="loginSection" class="login-box">
         <h3>队员登录</h3>
         <div class="warning-box">各队员请勿使用移动数据，若发现超过1GB移动数据使用量，将扣除5个本赛季杯赛积分。</div>
-        <input type="text" id="accountInput" placeholder="账号">
-        <input type="password" id="passwordLast4Input" placeholder="密码后4位" maxlength="4">
+        <input type="text" id="accountInput" name="accountInput" placeholder="账号">
+        <input type="password" id="passwordLast4Input" name="passwordLast4Input" placeholder="密码后4位" maxlength="4">
         <button onclick="loginUser()">登录</button>
     </div>
 
@@ -145,8 +146,8 @@
             <!-- 管理员新闻发布表单 -->
             <div id="adminNewsSection" style="display: none;" class="news-form">
                 <div class="section-title">发布新闻</div>
-                <input type="text" id="newsTitleInput" placeholder="新闻标题">
-                <textarea id="newsContentInput" placeholder="新闻内容（支持换行）"></textarea>
+                <input type="text" id="newsTitleInput" name="newsTitleInput" placeholder="新闻标题">
+                <textarea id="newsContentInput" name="newsContentInput" placeholder="新闻内容（支持换行）"></textarea>
                 <button onclick="addNews()">发布</button>
             </div>
 
@@ -188,17 +189,34 @@
             <div class="section-title">账号管理</div>
             <div class="account-box">
                 <p><strong>修改登录名和用户名</strong></p>
-                <input type="text" id="newAccountInput" placeholder="新登录名">
-                <input type="text" id="newNameInput" placeholder="新用户名">
+                <input type="text" id="newAccountInput" name="newAccountInput" placeholder="新登录名">
+                <input type="text" id="newNameInput" name="newNameInput" placeholder="新用户名">
                 <button onclick="changeAccountAndName()">确认修改</button>
                 <div class="divider"></div>
-                <button onclick="openSwitchAccountModal()">切换账号</button>
+                <button onclick="toggleSwitchAccountForm()">切换账号</button>
+                <div id="switchAccountForm" class="hidden">
+                    <input type="text" id="switchAccountInput" name="switchAccountInput" placeholder="新登录名">
+                    <button onclick="submitSwitchAccount()">确认切换</button>
+                </div>
             </div>
 
             <div class="section-title">账号安全</div>
             <div class="account-box">
-                <button onclick="openPasswordModal()">修改密码</button>
-                <button class="danger-btn" onclick="openDeleteAccountModal()">注销账号</button>
+                <button onclick="togglePasswordForm()">修改密码</button>
+                <div id="passwordForm" class="hidden">
+                    <input type="password" id="oldPasswordInput" name="oldPasswordInput" placeholder="原密码">
+                    <input type="password" id="newPasswordInput" name="newPasswordInput" placeholder="新密码">
+                    <input type="password" id="confirmPasswordInput" name="confirmPasswordInput" placeholder="确认新密码">
+                    <button onclick="submitPasswordChange()">确认修改</button>
+                </div>
+                <div class="divider"></div>
+                <button class="danger-btn" onclick="toggleDeleteAccountForm()">注销账号</button>
+                <div id="deleteAccountForm" class="hidden">
+                    <p>输入密码以继续。</p>
+                    <input type="password" id="deletePasswordInput" name="deletePasswordInput" placeholder="输入密码">
+                    <div id="deleteWarning" style="color:red;font-size:12px;display:none;">一旦你完成了这些，你的账号就将失效，你的积分可能不会被继续保存在用户名单中。</div>
+                    <button class="danger-btn" onclick="submitDeleteAccount()">确认注销</button>
+                </div>
             </div>
         </div>
 
@@ -211,7 +229,7 @@
             <div class="cup-info" id="cupInfoContainer"><div class="loading">加载中...</div></div>
             <div class="remark">
                 当你5天内出现有3次冠军并净胜球46球，你可获得额外的5积分。
-                <span class="faq-btn" onclick="showModal('申请请在商品兑换页查看')">?</span>
+                <span class="faq-btn" onclick="showToast('申请请在商品兑换页查看')">?</span>
             </div>
         </div>
 
@@ -231,73 +249,14 @@
     </div>
 </div>
 
-<!-- 通用弹窗 -->
-<div id="alertModal" class="modal-overlay hidden">
-    <div class="modal">
-        <p id="alertText"></p>
-        <button onclick="closeModal('alertModal')">知道了</button>
-    </div>
-</div>
-
-<!-- 自定义确认弹窗 -->
-<div id="confirmModal" class="modal-overlay hidden">
-    <div class="modal">
-        <p id="confirmText"></p>
-        <div>
-            <button onclick="confirmYes()">确定</button>
-            <button onclick="confirmNo()">取消</button>
-        </div>
-    </div>
-</div>
-
-<!-- 修改密码模态框 -->
-<div id="passwordModal" class="modal-overlay hidden">
-    <div class="modal" style="text-align:left;">
-        <h4>修改密码</h4>
-        <input type="password" id="oldPasswordInput" placeholder="原密码">
-        <input type="password" id="newPasswordInput" placeholder="新密码">
-        <input type="password" id="confirmPasswordInput" placeholder="确认新密码">
-        <div>
-            <button onclick="submitPasswordChange()">确认</button>
-            <button onclick="closeModal('passwordModal')">取消</button>
-        </div>
-    </div>
-</div>
-
-<!-- 注销账号模态框 -->
-<div id="deleteAccountModal" class="modal-overlay hidden">
-    <div class="modal" style="text-align:left;">
-        <h4>注销账号</h4>
-        <p>你现在正在注销你的本赛季杯赛积分兑换活动配套系统账号，输入你的密码以继续。</p>
-        <input type="password" id="deletePasswordInput" placeholder="输入密码">
-        <div class="warning-text" id="deleteWarning" style="color:red;font-size:12px;margin-top:-5px;margin-bottom:10px;display:none;">一旦你完成了这些，你的账号就将失效，你的积分可能不会被继续保存在用户名单中。</div>
-        <div>
-            <button class="danger" onclick="submitDeleteAccount()">确认注销</button>
-            <button onclick="closeModal('deleteAccountModal')">取消</button>
-        </div>
-    </div>
-</div>
-
-<!-- 切换账号模态框 -->
-<div id="switchAccountModal" class="modal-overlay hidden">
-    <div class="modal" style="text-align:left;">
-        <h4>切换账号</h4>
-        <p>输入新的登录名，如果切换失败将自动保留原账号。</p>
-        <input type="text" id="switchAccountInput" placeholder="新登录名">
-        <div>
-            <button onclick="submitSwitchAccount()">确认切换</button>
-            <button onclick="closeModal('switchAccountModal')">取消</button>
-        </div>
-    </div>
-</div>
+<!-- Toast 通知容器 -->
+<div id="toast-container"></div>
 
 <script>
     var SUPABASE_URL = 'https://hjktfecloctfpaoohzax.supabase.co';
     var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqa3RmZWNsb2N0ZnBhb29oemF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4ODQ5MzksImV4cCI6MjEwMjQ2MDkzOX0.Kd94mBz7-2EX9Xu3HZUKawIgUWCrVbFsH7rXFyz7WUg';
 
     var ADMIN_ACCOUNTS = ['1', 'shengsiyuan'];
-
-    let confirmCallback = null;
 
     function getHeaders() {
         return {
@@ -324,30 +283,16 @@
     var selectedQty = {};
     var autoLogoutTimer;
 
-    function showModal(text) {
-        document.getElementById('alertText').textContent = text;
-        document.getElementById('alertModal').classList.remove('hidden');
-    }
-
-    function showConfirm(text, callback) {
-        document.getElementById('confirmText').textContent = text;
-        document.getElementById('confirmModal').classList.remove('hidden');
-        confirmCallback = callback;
-    }
-
-    function confirmYes() {
-        closeModal('confirmModal');
-        if (confirmCallback) confirmCallback();
-        confirmCallback = null;
-    }
-
-    function confirmNo() {
-        closeModal('confirmModal');
-        confirmCallback = null;
-    }
-
-    function closeModal(modalId) {
-        document.getElementById(modalId).classList.add('hidden');
+    // 显示 Toast 通知
+    function showToast(message, type) {
+        var container = document.getElementById('toast-container');
+        var toast = document.createElement('div');
+        toast.className = 'toast ' + (type || '');
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(function() {
+            toast.remove();
+        }, 3000);
     }
 
     function resetAutoLogout() {
@@ -381,7 +326,7 @@
     async function loginUser() {
         var account = document.getElementById('accountInput').value.trim();
         var last4 = document.getElementById('passwordLast4Input').value.trim();
-        if (!account || !last4) { showModal('请输入账号和密码后4位'); return; }
+        if (!account || !last4) { showToast('请输入账号和密码后4位', 'error'); return; }
         try {
             var data = await apiFetch('/rest/v1/rpc/login_user_last4', {
                 method: 'POST',
@@ -392,11 +337,11 @@
                 await silentlyExpirePoints();
                 showMainSection();
             } else {
-                showModal(data.msg || '账号或密码后4位错误');
+                showToast(data.msg || '账号或密码后4位错误', 'error');
             }
         } catch (e) {
             console.error('登录失败:', e);
-            showModal('登录失败，请检查网络或配置');
+            showToast('登录失败，请检查网络或配置', 'error');
         }
     }
 
@@ -500,23 +445,23 @@
     async function addNews() {
         var title = document.getElementById('newsTitleInput').value.trim();
         var content = document.getElementById('newsContentInput').value.trim();
-        if (!title || !content) { showModal('请输入新闻标题和内容'); return; }
+        if (!title || !content) { showToast('请输入新闻标题和内容', 'error'); return; }
         try {
             var data = await apiFetch('/rest/v1/rpc/add_news', {
                 method: 'POST',
                 body: JSON.stringify({ p_title: title, p_content: content })
             });
             if (data && data.success) {
-                showModal('新闻发布成功');
+                showToast('新闻发布成功', 'success');
                 document.getElementById('newsTitleInput').value = '';
                 document.getElementById('newsContentInput').value = '';
                 loadNews();
             } else {
-                showModal(data.msg || '发布失败');
+                showToast(data.msg || '发布失败', 'error');
             }
         } catch (e) {
             console.error('发布新闻失败:', e);
-            showModal('发布失败，请重试');
+            showToast('发布失败，请重试', 'error');
         }
     }
 
@@ -568,7 +513,6 @@
                         extraRemark = '<div style="color:#888; font-size:12px; margin-top:3px;">合理申请，请勿多加。</div>';
                     }
 
-                    // 特殊商品：抽奖
                     if (p.name === '【申请】超级加倍抽奖') {
                         return '<div class="prize-item">' +
                             '<div class="prize-info">' +
@@ -582,7 +526,6 @@
                             '</div>';
                     }
 
-                    // 免费可乐
                     if (p.name === '【免费】可口可乐600mL1瓶') {
                         return '<div class="prize-item">' +
                             '<div class="prize-info">' +
@@ -596,7 +539,6 @@
                             '</div>';
                     }
 
-                    // 普通商品
                     return '<div class="prize-item">' +
                         '<div class="prize-info">' +
                             '<div class="prize-name">' + p.name + '</div>' +
@@ -631,62 +573,58 @@
         if (el) el.textContent = newQty;
     }
 
-    function exchangePrize(prizeId) {
+    async function exchangePrize(prizeId) {
         if (!currentUser) return;
         var quantity = selectedQty[prizeId] || 0;
-        if (quantity < 1) { showModal('请选择兑换数量'); return; }
-        showConfirm('确定兑换该奖品吗？数量：' + quantity, async () => {
-            try {
-                var data = await apiFetch('/rest/v1/rpc/exchange_prize', {
-                    method: 'POST',
-                    body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId, p_quantity: quantity })
-                });
-                if (data && data.success) {
-                    showModal('兑换成功！');
-                    currentUser.points -= data.total_cost;
-                    document.getElementById('pointsDisplay').textContent = currentUser.points;
-                    updatePointsDisplay();
-                    selectedQty[prizeId] = 0;
-                    var el = document.getElementById('qty-' + prizeId);
-                    if (el) el.textContent = '0';
-                    loadPrizes();
-                    loadRecords();
-                    if (isAdmin()) loadNotices();
-                } else {
-                    showModal(data.msg || '兑换失败');
-                }
-            } catch (e) {
-                console.error('兑换失败:', e);
-                showModal('兑换失败，请重试');
+        if (quantity < 1) { showToast('请选择兑换数量', 'error'); return; }
+        try {
+            var data = await apiFetch('/rest/v1/rpc/exchange_prize', {
+                method: 'POST',
+                body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId, p_quantity: quantity })
+            });
+            if (data && data.success) {
+                showToast('兑换成功！', 'success');
+                currentUser.points -= data.total_cost;
+                document.getElementById('pointsDisplay').textContent = currentUser.points;
+                updatePointsDisplay();
+                selectedQty[prizeId] = 0;
+                var el = document.getElementById('qty-' + prizeId);
+                if (el) el.textContent = '0';
+                loadPrizes();
+                loadRecords();
+                if (isAdmin()) loadNotices();
+            } else {
+                showToast(data.msg || '兑换失败', 'error');
             }
-        });
+        } catch (e) {
+            console.error('兑换失败:', e);
+            showToast('兑换失败，请重试', 'error');
+        }
     }
 
-    function startLottery(prizeId) {
+    async function startLottery(prizeId) {
         if (!currentUser) return;
-        showConfirm('确定花费10积分参与超级加倍抽奖吗？', async () => {
-            try {
-                var data = await apiFetch('/rest/v1/rpc/exchange_lottery', {
-                    method: 'POST',
-                    body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId })
-                });
-                if (data && data.success) {
-                    var resultText = data.multiplier === 1.5 ? '翻1.5倍' : '翻3.5倍';
-                    showModal('恭喜你获得：' + resultText + '！');
-                    currentUser.points -= 10;
-                    document.getElementById('pointsDisplay').textContent = currentUser.points;
-                    updatePointsDisplay();
-                    loadPrizes();
-                    loadRecords();
-                    if (isAdmin()) loadNotices();
-                } else {
-                    showModal(data.msg || '抽奖失败');
-                }
-            } catch (e) {
-                console.error('抽奖失败:', e);
-                showModal('抽奖失败，请重试');
+        try {
+            var data = await apiFetch('/rest/v1/rpc/exchange_lottery', {
+                method: 'POST',
+                body: JSON.stringify({ p_user_id: currentUser.id, p_prize_id: prizeId })
+            });
+            if (data && data.success) {
+                var resultText = data.multiplier === 1.5 ? '翻1.5倍' : '翻3.5倍';
+                showToast('恭喜你获得：' + resultText + '！', 'success');
+                currentUser.points -= 10;
+                document.getElementById('pointsDisplay').textContent = currentUser.points;
+                updatePointsDisplay();
+                loadPrizes();
+                loadRecords();
+                if (isAdmin()) loadNotices();
+            } else {
+                showToast(data.msg || '抽奖失败', 'error');
             }
-        });
+        } catch (e) {
+            console.error('抽奖失败:', e);
+            showToast('抽奖失败，请重试', 'error');
+        }
     }
 
     async function loadRecords() {
@@ -717,34 +655,32 @@
         }
     }
 
-    function deleteExchange(exchangeId) {
+    async function deleteExchange(exchangeId) {
         if (!currentUser) return;
-        showConfirm('确定删除这条兑换记录吗？', async () => {
-            try {
-                await apiFetch('/rest/v1/exchanges?id=eq.' + exchangeId, { method: 'DELETE' });
-                loadRecords();
-                if (isAdmin()) loadNotices();
-                loadPrizes();
-            } catch (e) {
-                console.error('删除记录失败:', e);
-                showModal('删除失败，请重试');
-            }
-        });
+        try {
+            await apiFetch('/rest/v1/exchanges?id=eq.' + exchangeId, { method: 'DELETE' });
+            showToast('删除成功', 'success');
+            loadRecords();
+            if (isAdmin()) loadNotices();
+            loadPrizes();
+        } catch (e) {
+            console.error('删除记录失败:', e);
+            showToast('删除失败，请重试', 'error');
+        }
     }
 
-    function clearAllExchanges() {
+    async function clearAllExchanges() {
         if (!currentUser) return;
-        showConfirm('确定清除你的所有兑换记录吗？', async () => {
-            try {
-                await apiFetch('/rest/v1/exchanges?user_id=eq.' + currentUser.id, { method: 'DELETE' });
-                loadRecords();
-                if (isAdmin()) loadNotices();
-                loadPrizes();
-            } catch (e) {
-                console.error('清除记录失败:', e);
-                showModal('清除失败，请重试');
-            }
-        });
+        try {
+            await apiFetch('/rest/v1/exchanges?user_id=eq.' + currentUser.id, { method: 'DELETE' });
+            showToast('已清除全部兑换记录', 'success');
+            loadRecords();
+            if (isAdmin()) loadNotices();
+            loadPrizes();
+        } catch (e) {
+            console.error('清除记录失败:', e);
+            showToast('清除失败，请重试', 'error');
+        }
     }
 
     async function loadNotices() {
@@ -860,10 +796,34 @@
         }
     }
 
+    // 账号管理相关函数（无弹窗，使用内联表单）
+    function toggleSwitchAccountForm() {
+        var form = document.getElementById('switchAccountForm');
+        form.classList.toggle('hidden');
+    }
+
+    function togglePasswordForm() {
+        var form = document.getElementById('passwordForm');
+        form.classList.toggle('hidden');
+    }
+
+    function toggleDeleteAccountForm() {
+        var form = document.getElementById('deleteAccountForm');
+        form.classList.toggle('hidden');
+    }
+
+    document.getElementById('deletePasswordInput').addEventListener('input', function() {
+        if (this.value.trim().length > 0) {
+            document.getElementById('deleteWarning').style.display = 'block';
+        } else {
+            document.getElementById('deleteWarning').style.display = 'none';
+        }
+    });
+
     async function changeAccountAndName() {
         var newAccount = document.getElementById('newAccountInput').value.trim();
         var newName = document.getElementById('newNameInput').value.trim();
-        if (!newAccount && !newName) { showModal('请输入新登录名或新用户名'); return; }
+        if (!newAccount && !newName) { showToast('请输入新登录名或新用户名', 'error'); return; }
         if (newAccount) {
             try {
                 var accountData = await apiFetch('/rest/v1/rpc/update_account', {
@@ -874,12 +834,12 @@
                     currentUser.account = accountData.new_account || newAccount;
                     document.getElementById('newAccountInput').value = '';
                 } else {
-                    showModal(accountData.msg || '修改登录名失败');
+                    showToast(accountData.msg || '修改登录名失败', 'error');
                     return;
                 }
             } catch (e) {
                 console.error(e);
-                showModal('修改登录名失败，请重试');
+                showToast('修改登录名失败，请重试', 'error');
                 return;
             }
         }
@@ -894,94 +854,66 @@
                     document.getElementById('greetingText').textContent = '你好，' + currentUser.name;
                     document.getElementById('newNameInput').value = '';
                 } else {
-                    showModal(nameData.msg || '修改用户名失败');
+                    showToast(nameData.msg || '修改用户名失败', 'error');
                     return;
                 }
             } catch (e) {
                 console.error(e);
-                showModal('修改用户名失败，请重试');
+                showToast('修改用户名失败，请重试', 'error');
                 return;
             }
         }
-        showModal('账号信息修改成功');
-    }
-
-    function openPasswordModal() {
-        document.getElementById('oldPasswordInput').value = '';
-        document.getElementById('newPasswordInput').value = '';
-        document.getElementById('confirmPasswordInput').value = '';
-        document.getElementById('passwordModal').classList.remove('hidden');
+        showToast('账号信息修改成功', 'success');
     }
 
     async function submitPasswordChange() {
         var oldPassword = document.getElementById('oldPasswordInput').value.trim();
         var newPassword = document.getElementById('newPasswordInput').value.trim();
         var confirmPassword = document.getElementById('confirmPasswordInput').value.trim();
-        if (!oldPassword || !newPassword || !confirmPassword) { showModal('请填写所有密码字段'); return; }
-        if (newPassword !== confirmPassword) { showModal('两次输入的新密码不一致'); return; }
+        if (!oldPassword || !newPassword || !confirmPassword) { showToast('请填写所有密码字段', 'error'); return; }
+        if (newPassword !== confirmPassword) { showToast('两次输入的新密码不一致', 'error'); return; }
         try {
             var data = await apiFetch('/rest/v1/rpc/update_password', {
                 method: 'POST',
                 body: JSON.stringify({ p_user_id: currentUser.id, p_old_password: oldPassword, p_new_password: newPassword })
             });
             if (data && data.success) {
-                showModal('密码修改成功，请重新登录');
-                closeModal('passwordModal');
+                showToast('密码修改成功，请重新登录', 'success');
+                document.getElementById('passwordForm').classList.add('hidden');
                 logoutUser();
             } else {
-                showModal(data.msg || '修改失败');
+                showToast(data.msg || '修改失败', 'error');
             }
         } catch (e) {
             console.error(e);
-            showModal('修改失败，请重试');
+            showToast('修改失败，请重试', 'error');
         }
     }
 
-    function openDeleteAccountModal() {
-        document.getElementById('deletePasswordInput').value = '';
-        document.getElementById('deleteWarning').style.display = 'none';
-        document.getElementById('deleteAccountModal').classList.remove('hidden');
-    }
-
-    document.getElementById('deletePasswordInput').addEventListener('input', function() {
-        if (this.value.trim().length > 0) {
-            document.getElementById('deleteWarning').style.display = 'block';
-        } else {
-            document.getElementById('deleteWarning').style.display = 'none';
-        }
-    });
-
-    function submitDeleteAccount() {
+    async function submitDeleteAccount() {
         var password = document.getElementById('deletePasswordInput').value.trim();
-        if (!password) { showModal('请输入密码'); return; }
-        showConfirm('确定注销账号吗？', async () => {
-            try {
-                var data = await apiFetch('/rest/v1/rpc/delete_user', {
-                    method: 'POST',
-                    body: JSON.stringify({ p_user_id: currentUser.id, p_password: password })
-                });
-                if (data && data.success) {
-                    showModal('账号已注销');
-                    closeModal('deleteAccountModal');
-                    logoutUser();
-                } else {
-                    showModal(data.msg || '密码错误');
-                }
-            } catch (e) {
-                console.error(e);
-                showModal('注销失败，请重试');
+        if (!password) { showToast('请输入密码', 'error'); return; }
+        try {
+            var data = await apiFetch('/rest/v1/rpc/delete_user', {
+                method: 'POST',
+                body: JSON.stringify({ p_user_id: currentUser.id, p_password: password })
+            });
+            if (data && data.success) {
+                showToast('账号已注销', 'success');
+                document.getElementById('deleteAccountForm').classList.add('hidden');
+                logoutUser();
+            } else {
+                showToast(data.msg || '密码错误', 'error');
             }
-        });
-    }
-
-    function openSwitchAccountModal() {
-        document.getElementById('switchAccountInput').value = '';
-        document.getElementById('switchAccountModal').classList.remove('hidden');
+        } catch (e) {
+            console.error(e);
+            showToast('注销失败，请重试', 'error');
+        }
     }
 
     async function submitSwitchAccount() {
         var newAccount = document.getElementById('switchAccountInput').value.trim();
-        if (!newAccount) { showModal('请输入新登录名'); return; }
+        if (!newAccount) { showToast('请输入新登录名', 'error'); return; }
         try {
             var data = await apiFetch('/rest/v1/rpc/update_account', {
                 method: 'POST',
@@ -989,14 +921,14 @@
             });
             if (data && data.success) {
                 currentUser.account = data.new_account || newAccount;
-                closeModal('switchAccountModal');
-                showModal('切换账号成功，下次登录请使用新账号');
+                document.getElementById('switchAccountForm').classList.add('hidden');
+                showToast('切换账号成功，下次登录请使用新账号', 'success');
             } else {
-                showModal(data.msg || '切换失败，已保留原账号');
+                showToast(data.msg || '切换失败，已保留原账号', 'error');
             }
         } catch (e) {
             console.error(e);
-            showModal('切换失败，已保留原账号');
+            showToast('切换失败，已保留原账号', 'error');
         }
     }
 
@@ -1006,14 +938,6 @@
         loadNews();
         if (isAdmin()) loadNotices();
     }
-
-    window.addEventListener('load', function() {
-        closeModal('passwordModal');
-        closeModal('deleteAccountModal');
-        closeModal('switchAccountModal');
-        closeModal('alertModal');
-        closeModal('confirmModal');
-    });
 </script>
 </body>
 </html>
